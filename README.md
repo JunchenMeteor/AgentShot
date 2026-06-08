@@ -1,5 +1,9 @@
 # AgentShot
 
+[![npm version](https://img.shields.io/npm/v/@jcmeteor/agentshot)](https://www.npmjs.com/package/@jcmeteor/agentshot)
+[![npm downloads](https://img.shields.io/npm/dm/@jcmeteor/agentshot)](https://www.npmjs.com/package/@jcmeteor/agentshot)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 [English](README.md) | [简体中文](README.zh-CN.md)
 
 Local-first screenshot bridge for Claude Code, Codex CLI, Aider, Gemini CLI, OpenCode, and terminal AI agents.
@@ -8,71 +12,52 @@ Local-first screenshot bridge for Claude Code, Codex CLI, Aider, Gemini CLI, Ope
 clipboard screenshot -> local file -> AI-ready prompt -> clipboard or active terminal
 ```
 
-AgentShot is built for developers who use AI tools from the terminal and need to show screenshots without saving files by hand, renaming them, moving them into a project folder, or uploading them to a public service.
+AgentShot is for developers who use AI coding agents from the terminal and need to show screenshots without manually saving, renaming, moving, uploading, or copying image paths.
 
-## The Problem
+## Table of Contents
 
-Terminal AI tools can often inspect local image files, but terminals usually cannot pass clipboard images into CLI apps. The normal workflow becomes:
+- [Quick Start](#quick-start)
+- [Install](#install)
+- [Why AgentShot](#why-agentshot)
+- [Common Workflows](#common-workflows)
+- [Commands](#commands)
+- [Supported AI Tools](#supported-ai-tools)
+- [Storage and Privacy](#storage-and-privacy)
+- [Daemon](#daemon)
+- [Platform Coverage](#platform-coverage)
+- [Comparison](#comparison)
+- [Quality](#quality)
+- [Status](#status)
 
-```text
-take screenshot -> save or export -> rename -> move -> copy path -> write prompt
+## Quick Start
+
+Install globally:
+
+```bash
+npm install -g @jcmeteor/agentshot
 ```
 
-AgentShot makes the preferred workflow clipboard-first:
+Use one screenshot from the clipboard:
 
 ```bash
 # macOS: Cmd+Shift+Ctrl+4, select a region, then:
 agentshot clipboard --ask "Analyze this UI bug" --tool codex
 ```
 
-For an even smoother flow, keep a watcher running:
+Keep a watcher running for repeated screenshots:
 
 ```bash
-agentshot daemon --ask "Analyze this screenshot" --tool codex
+agentshot daemon install --tool codex --ask "Analyze this screenshot"
+agentshot daemon status
 ```
 
-Then every new clipboard screenshot is saved and converted into an AI-ready prompt.
-After a global npm install, AgentShot also tries to register this watcher as a startup daemon. The safe default is still clipboard-only: it prepares the prompt, then you paste it into the AI terminal yourself.
+After that, take a clipboard screenshot and paste the generated prompt into Claude Code, Codex, Aider, Gemini CLI, OpenCode, or another terminal agent.
 
-## What Makes It Different
+Example generated prompt:
 
-| Tool | Windows + macOS | Pure local | Terminal-first | Multi-agent | No VS Code dependency |
-| --- | --- | --- | --- | --- | --- |
-| AgentShot | Yes | Yes | Yes | Yes | Yes |
-| Paparazzi | macOS focused | Yes | Claude Code focused | Limited | Yes |
-| Snap2Link | Yes | No, creates share links | Yes | Yes | Yes |
-| VS Code image paste extensions | Mixed | Yes | VS Code terminal only | Mixed | No |
-| Raycast terminal image paste | macOS | Yes | Utility-driven | Generic | Raycast required |
-
-## Platform Coverage
-
-| Capability | Windows | macOS |
-| --- | --- | --- |
-| Save clipboard screenshot | Yes | Yes |
-| Open screenshot tool from CLI | Yes, screen clipping fallback | Yes, `screencapture -i` fallback |
-| Clipboard watcher | Yes | Yes |
-| Startup daemon | Yes, scheduled task | Yes, LaunchAgent |
-| Copy prompt to clipboard | Yes | Yes |
-| Best-effort paste | Yes | Yes |
-| WSL path conversion | Yes | Not applicable |
-| AI session detection | Yes | Yes |
-| Global hotkey/menu bar helper | Planned | Planned |
-| Remote SSH copy | Planned | Planned |
-
-## Features
-
-- Save screenshots automatically with timestamped names.
-- Copy an AI-ready prompt to the clipboard.
-- Watch clipboard image changes with `agentshot watch`.
-- Install a startup watcher with `agentshot daemon install`.
-- Inspect daemon state with `agentshot daemon status`.
-- Detect terminal AI processes with `agentshot sessions`.
-- Optional best-effort paste into the active terminal.
-- macOS clipboard screenshot save and interactive capture fallback.
-- Windows clipboard screenshot save and screen clipping fallback.
-- WSL path conversion for Windows terminal workflows.
-- Prompt templates for `claude`, `codex`, `aider`, `gemini`, `opencode`, and `generic`.
-- No upload, telemetry, image host, or cloud account.
+```text
+Analyze this screenshot: /Users/you/.agentshot/shots/shot-20260608-224138.png
+```
 
 ## Install
 
@@ -86,63 +71,6 @@ The global install does not start a background service automatically. Enable bac
 
 ```bash
 agentshot daemon install --tool codex --ask "Analyze this screenshot"
-```
-
-Skip postinstall guidance:
-
-```bash
-AGENTSHOT_SKIP_POSTINSTALL=1 npm install -g @jcmeteor/agentshot
-```
-
-If global install fails with a permission error, use one of these options:
-
-Windows automated fallback:
-
-```powershell
-irm https://raw.githubusercontent.com/JunchenMeteor/AgentShot/main/install.ps1 | iex
-```
-
-macOS/Linux automated fallback:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/JunchenMeteor/AgentShot/main/install.sh | bash
-```
-
-These scripts check Node.js, switch npm global installs to a user-writable prefix when needed, update PATH, install AgentShot, and then ask you to explicitly enable the daemon.
-
-If you prefer to inspect the script before running it:
-
-```powershell
-irm https://raw.githubusercontent.com/JunchenMeteor/AgentShot/main/install.ps1 -OutFile install.ps1
-notepad .\install.ps1
-powershell -ExecutionPolicy Bypass -File .\install.ps1
-```
-
-Manual npm prefix setup:
-
-```bash
-# Recommended for npm-managed global tools
-npm config set prefix ~/.npm-global
-```
-
-Then add the npm global bin directory to your shell PATH:
-
-```bash
-export PATH="$HOME/.npm-global/bin:$PATH"
-```
-
-On Windows, use a user-writable npm prefix:
-
-```powershell
-npm config set prefix "$env:USERPROFILE\.npm-global"
-```
-
-Then add `%USERPROFILE%\.npm-global` to your user PATH.
-
-As a temporary fallback on macOS/Linux, you can use `sudo`, but a user-writable npm prefix is preferred:
-
-```bash
-sudo npm install -g @jcmeteor/agentshot
 ```
 
 Run without a global install:
@@ -166,7 +94,80 @@ npm install
 npm link
 ```
 
-## Quick Start
+Skip postinstall guidance:
+
+```bash
+AGENTSHOT_SKIP_POSTINSTALL=1 npm install -g @jcmeteor/agentshot
+```
+
+If global install fails with a permission error, prefer a user-writable npm prefix:
+
+```bash
+npm config set prefix ~/.npm-global
+export PATH="$HOME/.npm-global/bin:$PATH"
+npm install -g @jcmeteor/agentshot
+```
+
+Windows user-writable prefix:
+
+```powershell
+npm config set prefix "$env:USERPROFILE\.npm-global"
+```
+
+Then add `%USERPROFILE%\.npm-global` to your user PATH.
+
+Automated fallback installers:
+
+```powershell
+# Windows
+irm https://raw.githubusercontent.com/JunchenMeteor/AgentShot/main/install.ps1 | iex
+```
+
+```bash
+# macOS/Linux
+curl -fsSL https://raw.githubusercontent.com/JunchenMeteor/AgentShot/main/install.sh | bash
+```
+
+These scripts check Node.js, switch npm global installs to a user-writable prefix when needed, update PATH, install AgentShot, and then ask you to explicitly enable the daemon.
+
+If you prefer to inspect the Windows script before running it:
+
+```powershell
+irm https://raw.githubusercontent.com/JunchenMeteor/AgentShot/main/install.ps1 -OutFile install.ps1
+notepad .\install.ps1
+powershell -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+As a temporary fallback on macOS/Linux, you can use `sudo`, but a user-writable npm prefix is preferred:
+
+```bash
+sudo npm install -g @jcmeteor/agentshot
+```
+
+## Why AgentShot
+
+Terminal AI tools can often inspect local image files, but terminals usually cannot pass clipboard images directly into CLI apps. The normal workflow becomes:
+
+```text
+take screenshot -> save/export -> rename -> move -> copy path -> write prompt
+```
+
+AgentShot makes the workflow clipboard-first:
+
+```text
+take screenshot to clipboard -> AgentShot saves it -> AgentShot copies an AI-ready prompt
+```
+
+Use AgentShot when:
+
+- You use Claude Code, Codex CLI, Aider, Gemini CLI, OpenCode, or similar tools in a terminal.
+- You frequently need to show UI bugs, layout issues, logs, dashboards, or app screenshots.
+- You want screenshots to stay local instead of being uploaded to an image host.
+- You want one workflow that works across multiple terminal agents.
+
+Do not use AgentShot if your AI tool already supports direct image paste in the place where you work.
+
+## Common Workflows
 
 macOS clipboard-first:
 
@@ -182,10 +183,10 @@ Windows clipboard-first:
 agentshot clipboard --ask "Analyze this UI bug" --tool claude
 ```
 
-Clipboard watcher:
+Run a watcher in the current terminal:
 
 ```bash
-agentshot daemon --ask "Analyze this screenshot" --tool codex
+agentshot watch --ask "Analyze this screenshot" --tool codex
 ```
 
 Install the watcher as a startup daemon:
@@ -194,16 +195,6 @@ Install the watcher as a startup daemon:
 agentshot daemon install --ask "Analyze this screenshot" --tool codex
 agentshot daemon status
 ```
-
-Interactive fallback:
-
-```bash
-agentshot --ask "What is wrong with this layout?" --tool codex
-```
-
-On macOS this runs `screencapture -i`. On Windows it opens screen clipping if the clipboard does not already contain an image.
-
-## Common Workflows
 
 Use Codex from WSL:
 
@@ -229,21 +220,39 @@ Copy and try to paste into the active terminal:
 agentshot clipboard --tool claude --ask "Inspect this page" --paste
 ```
 
+Interactive fallback:
+
+```bash
+agentshot --ask "What is wrong with this layout?" --tool codex
+```
+
+On macOS this runs `screencapture -i`. On Windows it opens screen clipping if the clipboard does not already contain an image.
+
 ## Commands
 
-```text
-agentshot [capture]        Capture/save a screenshot and copy a prompt.
-agentshot clipboard        Save the current clipboard image and copy a prompt.
-agentshot watch            Watch for new clipboard screenshots.
-agentshot daemon           Long-running clipboard watcher.
-agentshot daemon install   Install startup clipboard watcher.
-agentshot daemon status    Show daemon install state, config, and log path.
-agentshot daemon uninstall Remove startup watcher.
-agentshot sessions         List detected AI CLI processes.
-agentshot last             Reuse the latest saved screenshot.
-agentshot dir              Print the screenshot directory.
-agentshot --help           Show help.
-```
+| Command | What it does |
+| --- | --- |
+| `agentshot [capture]` | Capture/save a screenshot and copy a prompt. |
+| `agentshot clipboard` | Save the current clipboard image and copy a prompt. |
+| `agentshot watch` | Watch for new clipboard screenshots in the current terminal. |
+| `agentshot daemon` | Run the long-running clipboard watcher. |
+| `agentshot daemon install` | Install the startup clipboard watcher. |
+| `agentshot daemon status` | Show daemon install state, config, and log path. |
+| `agentshot daemon uninstall` | Remove the startup watcher. |
+| `agentshot sessions` | List detected AI CLI processes. |
+| `agentshot last` | Reuse the latest saved screenshot. |
+| `agentshot dir` | Print the screenshot directory. |
+| `agentshot --help` | Show help. |
+
+Command modes at a glance:
+
+| Mode | Best for |
+| --- | --- |
+| `clipboard` | One clipboard screenshot at a time. |
+| `watch` | Temporary watcher in the current terminal. |
+| `daemon` | Long-running watcher process. |
+| `daemon install` | Start watcher automatically on login. |
+| `last` | Reusing the most recent screenshot. |
 
 ## Supported AI Tools
 
@@ -258,9 +267,11 @@ First-class templates:
 - OpenCode
 - Generic terminal agents
 
-## Storage
+## Storage and Privacy
 
-AgentShot never uploads screenshots. Files are saved under:
+AgentShot never uploads screenshots. It has no telemetry, image host, or cloud account.
+
+Files are saved under:
 
 ```text
 macOS/Linux: ~/.agentshot/shots
@@ -273,19 +284,17 @@ If the home directory is not writable, AgentShot falls back to `Pictures/agent-s
 AGENTSHOT_DIR=/path/to/shots agentshot
 ```
 
-## Native Terminal Paste Notes
+Native terminal paste notes:
 
-`--paste` copies the prompt first, then asks the OS to press paste in the active app:
-
-- macOS: AppleScript sends `Cmd+V` through System Events.
-- Windows: PowerShell sends `Ctrl+V` through Windows Forms.
-
-This should work with native Terminal.app and Windows Terminal when permissions and focus are correct, but it remains best-effort because terminal apps and OS security models differ.
+- `--paste` copies the prompt first, then asks the OS to press paste in the active app.
+- macOS uses AppleScript to send `Cmd+V` through System Events.
+- Windows uses PowerShell to send `Ctrl+V` through Windows Forms.
+- Paste is best-effort because terminal apps and OS security models differ.
 
 Recommended daily workflow:
 
 ```text
-1. Install AgentShot globally, or run: agentshot daemon install --ask "Analyze this screenshot" --tool codex
+1. Install AgentShot globally, or run daemon install.
 2. Take a clipboard screenshot with the OS shortcut.
 3. Return to Claude Code/Codex and paste.
 ```
@@ -294,7 +303,7 @@ This avoids unsafe automatic paste into the wrong window while still removing ma
 
 ## Daemon
 
-AgentShot's daemon is a resident clipboard watcher. It does not upload screenshots and does not inject text into terminal windows.
+AgentShot's daemon is a resident clipboard watcher. It does not upload screenshots and does not inject text into terminal windows by default.
 
 ```bash
 agentshot daemon install --tool codex --ask "Analyze this screenshot"
@@ -313,6 +322,33 @@ Logs and config:
 ~/.agentshot/daemon.log
 ~/.agentshot/daemon.json
 ```
+
+## Platform Coverage
+
+| Capability | Windows | macOS |
+| --- | --- | --- |
+| Save clipboard screenshot | Yes | Yes |
+| Open screenshot tool from CLI | Yes, screen clipping fallback | Yes, `screencapture -i` fallback |
+| Clipboard watcher | Yes | Yes |
+| Startup daemon | Yes, scheduled task | Yes, LaunchAgent |
+| Copy prompt to clipboard | Yes | Yes |
+| Best-effort paste | Yes | Yes |
+| WSL path conversion | Yes | Not applicable |
+| AI session detection | Yes | Yes |
+| Global hotkey/menu bar helper | Planned | Planned |
+| Remote SSH copy | Planned | Planned |
+
+## Comparison
+
+This is a high-level positioning table, not an exhaustive benchmark.
+
+| Tool | Windows + macOS | Pure local | Terminal-first | Multi-agent | No VS Code dependency |
+| --- | --- | --- | --- | --- | --- |
+| AgentShot | Yes | Yes | Yes | Yes | Yes |
+| Paparazzi | macOS focused | Yes | Claude Code focused | Limited | Yes |
+| Snap2Link | Yes | No, creates share links | Yes | Yes | Yes |
+| VS Code image paste extensions | Mixed | Yes | VS Code terminal only | Mixed | No |
+| Raycast terminal image paste | macOS | Yes | Utility-driven | Generic | Raycast required |
 
 ## Session Detection
 

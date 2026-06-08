@@ -45,6 +45,42 @@ Check that the tarball includes:
 - `docs`
 - `LICENSE`
 
+## Automated Release
+
+AgentShot keeps npm publishing and GitHub Releases synchronized through Git tags.
+
+Required repository secret:
+
+```text
+NPM_TOKEN
+```
+
+Create the token in npm with publish permission for `@jcmeteor/agentshot`, then add it in GitHub:
+
+```text
+Repository Settings -> Secrets and variables -> Actions -> New repository secret
+```
+
+Release flow:
+
+```bash
+npm version patch
+git push origin main
+git push origin v$(node -p "require('./package.json').version")
+```
+
+When the `vX.Y.Z` tag is pushed, GitHub Actions will:
+
+1. Check that the tag version matches `package.json`.
+2. Run `npm run validate`.
+3. Publish `@jcmeteor/agentshot@X.Y.Z` to npm with provenance.
+4. Create or update the matching GitHub Release with generated notes.
+
+If the tag and `package.json` version do not match, the release workflow fails before publishing.
+If npm publish succeeds but a later step fails, do not rerun blindly for the same version. Check npm first, then repair the GitHub Release manually or publish a new patch version.
+
+Because `main` is protected, prefer opening a version bump PR first, merging it, then creating the tag from the merged `main` commit.
+
 ## First Publish
 
 ```bash
