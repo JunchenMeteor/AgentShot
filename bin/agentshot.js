@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn, spawnSync } from 'node:child_process'
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir, platform, tmpdir } from 'node:os'
 import { basename, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -772,7 +772,16 @@ export async function main(argv = process.argv.slice(2)) {
   await complete(file, options)
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+function isCliEntrypoint() {
+  if (!process.argv[1]) return false
+  try {
+    return realpathSync(fileURLToPath(import.meta.url)) === realpathSync(process.argv[1])
+  } catch {
+    return import.meta.url === pathToFileURL(process.argv[1]).href
+  }
+}
+
+if (isCliEntrypoint()) {
   main().catch((error) => {
     console.error(`agentshot: ${error instanceof Error ? error.message : String(error)}`)
     process.exitCode = 1
