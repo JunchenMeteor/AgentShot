@@ -79,7 +79,7 @@ After a global npm install, AgentShot also tries to register this watcher as a s
 npm is the primary distribution channel:
 
 ```bash
-npm install -g @junchenmeteor/agentshot
+npm install -g @jcmeteor/agentshot
 ```
 
 The global install runs a best-effort daemon setup. If your environment blocks startup registration, installation still succeeds and AgentShot prints a manual command.
@@ -87,7 +87,7 @@ The global install runs a best-effort daemon setup. If your environment blocks s
 Skip automatic daemon setup:
 
 ```bash
-AGENTSHOT_SKIP_POSTINSTALL=1 npm install -g @junchenmeteor/agentshot
+AGENTSHOT_SKIP_POSTINSTALL=1 npm install -g @jcmeteor/agentshot
 ```
 
 If global install fails with a permission error, use one of these options:
@@ -138,13 +138,13 @@ Then add `%USERPROFILE%\.npm-global` to your user PATH.
 As a temporary fallback on macOS/Linux, you can use `sudo`, but a user-writable npm prefix is preferred:
 
 ```bash
-sudo npm install -g @junchenmeteor/agentshot
+sudo npm install -g @jcmeteor/agentshot
 ```
 
 Run without a global install:
 
 ```bash
-npx @junchenmeteor/agentshot
+npx @jcmeteor/agentshot
 ```
 
 Install from GitHub for preview builds:

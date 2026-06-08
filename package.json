@@ -1,5 +1,5 @@
 {
-  "name": "@junchenmeteor/agentshot",
+  "name": "@jcmeteor/agentshot",
   "version": "0.1.0",
   "description": "Local-first screenshot bridge for Claude Code, Codex CLI, Aider, Gemini CLI, OpenCode, and terminal AI agents.",
   "type": "module",

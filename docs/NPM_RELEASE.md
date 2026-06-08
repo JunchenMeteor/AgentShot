@@ -3,7 +3,7 @@
 AgentShot's primary distribution channel is npm:
 
 ```bash
-npm install -g @junchenmeteor/agentshot
+npm install -g @jcmeteor/agentshot
 ```
 
 GitHub installs are reserved for preview builds or source testing.
@@ -16,7 +16,7 @@ You need:
 - 2FA configured if npm requires it for publishing.
 - Access to the package scope.
 
-For the package name `@junchenmeteor/agentshot`, the npm user or organization must own the `junchenmeteor` scope. If the scope does not exist, npm creates it for your user on first publish if the username matches, or for an organization if created in npm first.
+For the package name `@jcmeteor/agentshot`, the npm user or organization must own the `jcmeteor` scope. If the scope does not exist, npm creates it for your user on first publish if the username matches, or for an organization if created in npm first.
 
 ## Login
 
@@ -57,14 +57,14 @@ Scoped packages need `--access public` for public release.
 After publishing, verify:
 
 ```bash
-npm view @junchenmeteor/agentshot version
-npm view @junchenmeteor/agentshot dist.tarball
+npm view @jcmeteor/agentshot version
+npm view @jcmeteor/agentshot dist.tarball
 ```
 
 Then test install on a clean machine or throwaway directory:
 
 ```bash
-npm install -g @junchenmeteor/agentshot
+npm install -g @jcmeteor/agentshot
 agentshot --help
 agentshot daemon status
 ```
@@ -100,14 +100,14 @@ macOS/Linux:
 ```bash
 npm config set prefix ~/.npm-global
 export PATH="$HOME/.npm-global/bin:$PATH"
-npm install -g @junchenmeteor/agentshot
+npm install -g @jcmeteor/agentshot
 ```
 
 Windows PowerShell:
 
 ```powershell
 npm config set prefix "$env:USERPROFILE\.npm-global"
-npm install -g @junchenmeteor/agentshot
+npm install -g @jcmeteor/agentshot
 ```
 
 Then add `%USERPROFILE%\.npm-global` to the user PATH if `agentshot` is not found.
@@ -115,7 +115,7 @@ Then add `%USERPROFILE%\.npm-global` to the user PATH if `agentshot` is not foun
 Temporary macOS/Linux fallback:
 
 ```bash
-sudo npm install -g @junchenmeteor/agentshot
+sudo npm install -g @jcmeteor/agentshot
 ```
 
 A user-writable prefix is preferred because it avoids mixing npm global tools with administrator-owned files.

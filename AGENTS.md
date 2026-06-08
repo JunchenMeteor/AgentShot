@@ -19,7 +19,7 @@ AgentShot should not upload screenshots, call AI APIs, or inject text into termi
 Primary distribution is npm:
 
 ```bash
-npm install -g @junchenmeteor/agentshot
+npm install -g @jcmeteor/agentshot
 ```
 
 The package uses a best-effort `postinstall` script to register a startup daemon. The install must not fail if daemon registration is blocked.
@@ -182,7 +182,7 @@ Update docs when behavior changes:
 Primary package name:
 
 ```text
-@junchenmeteor/agentshot
+@jcmeteor/agentshot
 ```
 
 First public publish:

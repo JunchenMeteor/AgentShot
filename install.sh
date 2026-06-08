@@ -76,11 +76,11 @@ ensure_path() {
 }
 
 install_agentshot() {
-  step "Installing @junchenmeteor/agentshot from npm"
+  step "Installing @jcmeteor/agentshot from npm"
   if [ "$SKIP_DAEMON" = "1" ]; then
-    AGENTSHOT_SKIP_POSTINSTALL=1 npm install -g @junchenmeteor/agentshot
+    AGENTSHOT_SKIP_POSTINSTALL=1 npm install -g @jcmeteor/agentshot
   else
-    npm install -g @junchenmeteor/agentshot
+    npm install -g @jcmeteor/agentshot
   fi
 }
 

@@ -79,7 +79,7 @@ npm 全局安装后，AgentShot 会尝试自动注册这个后台监听器。默
 npm 是 AgentShot 的主流安装方式：
 
 ```bash
-npm install -g @junchenmeteor/agentshot
+npm install -g @jcmeteor/agentshot
 ```
 
 全局安装会 best-effort 尝试注册后台 daemon。如果当前环境不允许注册，安装不会失败，AgentShot 会提示手动命令。
@@ -87,7 +87,7 @@ npm install -g @junchenmeteor/agentshot
 跳过自动 daemon 注册：
 
 ```bash
-AGENTSHOT_SKIP_POSTINSTALL=1 npm install -g @junchenmeteor/agentshot
+AGENTSHOT_SKIP_POSTINSTALL=1 npm install -g @jcmeteor/agentshot
 ```
 
 如果全局安装遇到权限不足，优先使用用户目录作为 npm 全局安装目录：
@@ -138,13 +138,13 @@ npm config set prefix "$env:USERPROFILE\.npm-global"
 macOS/Linux 也可以临时使用 `sudo`，但更推荐用户可写 npm prefix：
 
 ```bash
-sudo npm install -g @junchenmeteor/agentshot
+sudo npm install -g @jcmeteor/agentshot
 ```
 
 不全局安装，直接运行：
 
 ```bash
-npx @junchenmeteor/agentshot
+npx @jcmeteor/agentshot
 ```
 
 从 GitHub 安装预览版本：

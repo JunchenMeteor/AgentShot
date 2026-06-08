@@ -80,12 +80,12 @@ function Ensure-UserPath {
 }
 
 function Install-AgentShot {
-  Write-Step "Installing @junchenmeteor/agentshot from npm"
+  Write-Step "Installing @jcmeteor/agentshot from npm"
   if ($SkipDaemon) {
     $env:AGENTSHOT_SKIP_POSTINSTALL = "1"
   }
 
-  & npm install -g "@junchenmeteor/agentshot"
+  & npm install -g "@jcmeteor/agentshot"
   if ($LASTEXITCODE -ne 0) {
     throw "npm install failed."
   }
