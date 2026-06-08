@@ -1,9 +1,3 @@
-param(
-  [string]$Tool = "generic",
-  [string]$Ask = "Analyze this screenshot",
-  [switch]$SkipDaemon
-)
-
 $ErrorActionPreference = "Stop"
 
 function Write-Step {
@@ -91,24 +85,12 @@ function Install-AgentShot {
   }
 }
 
-function Configure-Daemon {
-  if ($SkipDaemon) {
-    Write-Step "Skipping daemon setup"
-    return
-  }
-
-  Write-Step "Installing AgentShot daemon"
-  & agentshot daemon install --tool $Tool --ask $Ask
-  if ($LASTEXITCODE -ne 0) {
-    Write-Warning "AgentShot installed, but daemon setup failed. Run manually: agentshot daemon install --tool $Tool --ask `"$Ask`""
-  }
-}
-
 Ensure-Node
 $prefix = Ensure-NpmPrefix
 Ensure-UserPath -Prefix $prefix
 Install-AgentShot
-Configure-Daemon
 
 Write-Step "AgentShot is ready"
+Write-Host 'Run this to enable background clipboard watching:'
+Write-Host 'agentshot daemon install --tool codex --ask "Analyze this screenshot"'
 & agentshot --help

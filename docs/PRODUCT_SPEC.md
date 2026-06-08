@@ -34,8 +34,8 @@ Phase 2: resident daemon by default
 - `agentshot daemon install` registers a startup service.
 - `agentshot daemon status` reports installed state, config, and log path.
 - `agentshot daemon uninstall` removes the startup service.
-- npm `postinstall` should best-effort install the daemon so a global install can immediately enter listening mode.
-- Auto-install must be skippable with `AGENTSHOT_SKIP_POSTINSTALL=1` and must not fail package installation.
+- npm `postinstall` should only print setup guidance. It must not start background processes or register startup services.
+- Postinstall guidance must be skippable with `AGENTSHOT_SKIP_POSTINSTALL=1` and must not fail package installation.
 
 Phase 3: session detection for future evolution
 
@@ -52,7 +52,7 @@ Phase 3: session detection for future evolution
 - Clipboard watcher with `agentshot watch`.
 - Long-running daemon command with `agentshot daemon`.
 - Startup daemon management with `agentshot daemon install/status/uninstall`.
-- Best-effort npm postinstall daemon registration.
+- npm postinstall guidance without automatic daemon registration.
 - Read-only session detection with `agentshot sessions`.
 - Local file storage with timestamped names.
 - Prompt templates for multiple AI tools.

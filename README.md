@@ -82,9 +82,13 @@ npm is the primary distribution channel:
 npm install -g @jcmeteor/agentshot
 ```
 
-The global install runs a best-effort daemon setup. If your environment blocks startup registration, installation still succeeds and AgentShot prints a manual command.
+The global install does not start a background service automatically. Enable background clipboard watching explicitly:
 
-Skip automatic daemon setup:
+```bash
+agentshot daemon install --tool codex --ask "Analyze this screenshot"
+```
+
+Skip postinstall guidance:
 
 ```bash
 AGENTSHOT_SKIP_POSTINSTALL=1 npm install -g @jcmeteor/agentshot
@@ -104,7 +108,7 @@ macOS/Linux automated fallback:
 curl -fsSL https://raw.githubusercontent.com/JunchenMeteor/AgentShot/main/install.sh | bash
 ```
 
-These scripts check Node.js, switch npm global installs to a user-writable prefix when needed, update PATH, install AgentShot, and register the daemon.
+These scripts check Node.js, switch npm global installs to a user-writable prefix when needed, update PATH, install AgentShot, and then ask you to explicitly enable the daemon.
 
 If you prefer to inspect the script before running it:
 

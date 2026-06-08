@@ -32,7 +32,7 @@ agentshot daemon --ask "分析这张截图" --tool codex
 ```
 
 之后每次新的剪贴板截图都会被保存，并转换成 AI 可用 prompt。
-npm 全局安装后，AgentShot 会尝试自动注册这个后台监听器。默认仍然是安全的剪贴板模式：只准备 prompt，由用户自己回到 AI 终端粘贴。
+npm 全局安装后不会自动启动后台监听器。默认仍然是安全的剪贴板模式：只准备 prompt，由用户自己回到 AI 终端粘贴。
 
 ## 和同类工具的区别
 
@@ -82,9 +82,13 @@ npm 是 AgentShot 的主流安装方式：
 npm install -g @jcmeteor/agentshot
 ```
 
-全局安装会 best-effort 尝试注册后台 daemon。如果当前环境不允许注册，安装不会失败，AgentShot 会提示手动命令。
+全局安装不会自动注册后台 daemon。需要后台监听时，显式执行：
 
-跳过自动 daemon 注册：
+```bash
+agentshot daemon install --tool codex --ask "分析这张截图"
+```
+
+跳过 postinstall 提示：
 
 ```bash
 AGENTSHOT_SKIP_POSTINSTALL=1 npm install -g @jcmeteor/agentshot
@@ -104,7 +108,7 @@ macOS/Linux 自动兜底安装：
 curl -fsSL https://raw.githubusercontent.com/JunchenMeteor/AgentShot/main/install.sh | bash
 ```
 
-这些脚本会检查 Node.js，在需要时把 npm 全局安装目录切到用户可写目录，更新 PATH，安装 AgentShot，并注册 daemon。
+这些脚本会检查 Node.js，在需要时把 npm 全局安装目录切到用户可写目录，更新 PATH，安装 AgentShot，然后提示你显式启用 daemon。
 
 如果希望先检查脚本再执行：
 

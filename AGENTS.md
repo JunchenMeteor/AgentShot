@@ -22,7 +22,7 @@ Primary distribution is npm:
 npm install -g @jcmeteor/agentshot
 ```
 
-The package uses a best-effort `postinstall` script to register a startup daemon. The install must not fail if daemon registration is blocked.
+The package uses `postinstall` only to print daemon setup guidance. It must not start background processes or register startup services during package installation.
 
 Current product phases:
 
@@ -45,7 +45,7 @@ Direct terminal injection is not a default behavior. Keep the safe default as "c
 ## Important Files
 
 - `bin/agentshot.js`: main CLI implementation.
-- `scripts/postinstall.mjs`: best-effort npm postinstall daemon registration.
+- `scripts/postinstall.mjs`: npm postinstall guidance. It must not start the daemon.
 - `scripts/validate.mjs`: local validation runner.
 - `tests/agentshot.test.js`: unit tests.
 - `README.md`: English user-facing README.
@@ -127,9 +127,9 @@ The daemon is a clipboard watcher.
 - Windows startup integration uses a user logon scheduled task named `AgentShot`.
 - Logs are written to `~/.agentshot/daemon.log`.
 - Config is written to `~/.agentshot/daemon.json`.
-- `AGENTSHOT_SKIP_POSTINSTALL=1` skips automatic daemon setup during npm install.
+- `AGENTSHOT_SKIP_POSTINSTALL=1` skips postinstall guidance during npm install.
 
-Daemon registration must be best-effort. Do not make npm installation fail because of OS permissions, CI, missing shell capabilities, or unsupported platforms.
+Daemon registration must be explicit through `agentshot daemon install`. Do not start background processes during npm installation.
 
 ## Storage
 
@@ -208,4 +208,3 @@ Always run validation before publish.
 - `--paste` is best-effort and depends on focus and OS permissions.
 - `sessions` is read-only and should remain non-invasive.
 - Global daemon install behavior can vary by OS permissions and npm environment.
-

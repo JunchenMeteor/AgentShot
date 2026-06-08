@@ -6,7 +6,7 @@ import { homedir, platform, tmpdir } from 'node:os'
 import { basename, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
-export const VERSION = '0.1.0'
+export const VERSION = '0.1.2'
 export const SUPPORTED_TOOLS = new Set(['claude', 'codex', 'aider', 'gemini', 'opencode', 'generic'])
 
 export function usage() {

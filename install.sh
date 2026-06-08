@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-TOOL="${AGENTSHOT_TOOL:-generic}"
-ASK="${AGENTSHOT_ASK:-Analyze this screenshot}"
-SKIP_DAEMON="${AGENTSHOT_SKIP_DAEMON:-0}"
-
 step() {
   printf '==> %s\n' "$1" >&2
 }
@@ -77,30 +73,15 @@ ensure_path() {
 
 install_agentshot() {
   step "Installing @jcmeteor/agentshot from npm"
-  if [ "$SKIP_DAEMON" = "1" ]; then
-    AGENTSHOT_SKIP_POSTINSTALL=1 npm install -g @jcmeteor/agentshot
-  else
-    npm install -g @jcmeteor/agentshot
-  fi
-}
-
-configure_daemon() {
-  if [ "$SKIP_DAEMON" = "1" ]; then
-    step "Skipping daemon setup"
-    return
-  fi
-
-  step "Installing AgentShot daemon"
-  if ! agentshot daemon install --tool "$TOOL" --ask "$ASK"; then
-    printf 'AgentShot installed, but daemon setup failed. Run manually: agentshot daemon install --tool %s --ask "%s"\n' "$TOOL" "$ASK" >&2
-  fi
+  npm install -g @jcmeteor/agentshot
 }
 
 ensure_node
 prefix="$(ensure_npm_prefix)"
 ensure_path "$prefix"
 install_agentshot
-configure_daemon
 
 step "AgentShot is ready"
+printf 'Run this to enable background clipboard watching:\n'
+printf 'agentshot daemon install --tool codex --ask "Analyze this screenshot"\n'
 agentshot --help
