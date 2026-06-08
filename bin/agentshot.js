@@ -3,10 +3,12 @@
 import { spawn, spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, unlinkSync, writeFileSync } from 'node:fs'
 import { homedir, platform, tmpdir } from 'node:os'
-import { basename, join, resolve } from 'node:path'
+import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
-export const VERSION = '0.1.2'
+const packageJsonPath = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'package.json')
+
+export const VERSION = JSON.parse(readFileSync(packageJsonPath, 'utf8')).version
 export const SUPPORTED_TOOLS = new Set(['claude', 'codex', 'aider', 'gemini', 'opencode', 'generic'])
 
 export function usage() {
