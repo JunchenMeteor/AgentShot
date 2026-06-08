@@ -42,7 +42,7 @@ jobs:
         run: npm run validate
 
       - name: Publish to npm
-        run: npm publish --access public
+        run: npm publish
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
