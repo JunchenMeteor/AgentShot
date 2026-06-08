@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn, spawnSync } from 'node:child_process'
-import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, unlinkSync, writeFileSync } from 'node:fs'
 import { homedir, platform, tmpdir } from 'node:os'
 import { basename, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -118,20 +118,37 @@ export function shotDirCandidates() {
 }
 
 export function configDir() {
-  return join(homedir(), '.agentshot')
+  return configDirCandidates()[0]
+}
+
+export function configDirCandidates() {
+  const configured = process.env.AGENTSHOT_HOME?.trim()
+  return [
+    configured,
+    join(homedir(), '.agentshot'),
+    join(tmpdir(), 'agentshot'),
+  ].filter(Boolean)
 }
 
 export function daemonLogPath() {
-  return join(configDir(), 'daemon.log')
+  return join(ensureConfigDir(), 'daemon.log')
 }
 
 export function daemonConfigPath() {
-  return join(configDir(), 'daemon.json')
+  return join(ensureConfigDir(), 'daemon.json')
 }
 
 function ensureConfigDir() {
-  mkdirSync(configDir(), { recursive: true })
-  return configDir()
+  const errors = []
+  for (const dir of configDirCandidates()) {
+    try {
+      mkdirSync(dir, { recursive: true })
+      return dir
+    } catch (error) {
+      errors.push(`${dir}: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
+  throw new Error(`Unable to create AgentShot config directory. Tried: ${errors.join('; ')}`)
 }
 
 function currentScriptPath() {
@@ -383,23 +400,23 @@ export function renderPrompt(file, options) {
   const ask = options.ask?.trim()
   const templates = {
     claude: ask
-      ? `${ask}\n\nPlease inspect this local image:\n${pathForPrompt}`
-      : `Please inspect this local image:\n${pathForPrompt}`,
+      ? `${ask} Please inspect this local image: ${pathForPrompt}`
+      : `Please inspect this local image: ${pathForPrompt}`,
     codex: ask
-      ? `${ask}\n\nAnalyze this local screenshot:\n${pathForPrompt}`
-      : `Analyze this local screenshot:\n${pathForPrompt}`,
+      ? `${ask} Analyze this local screenshot: ${pathForPrompt}`
+      : `Analyze this local screenshot: ${pathForPrompt}`,
     aider: ask
-      ? `${ask}\n\nUse this image as context:\n${pathForPrompt}`
-      : `Use this image as context:\n${pathForPrompt}`,
+      ? `${ask} Use this image as context: ${pathForPrompt}`
+      : `Use this image as context: ${pathForPrompt}`,
     gemini: ask
-      ? `${ask}\n\nReview this local image:\n${pathForPrompt}`
-      : `Review this local image:\n${pathForPrompt}`,
+      ? `${ask} Review this local image: ${pathForPrompt}`
+      : `Review this local image: ${pathForPrompt}`,
     opencode: ask
-      ? `${ask}\n\nInspect this screenshot file:\n${pathForPrompt}`
-      : `Inspect this screenshot file:\n${pathForPrompt}`,
+      ? `${ask} Inspect this screenshot file: ${pathForPrompt}`
+      : `Inspect this screenshot file: ${pathForPrompt}`,
     generic: ask
-      ? `${ask}\n\nImage path:\n${pathForPrompt}`
-      : `Please analyze this local image:\n${pathForPrompt}`,
+      ? `${ask} Image path: ${pathForPrompt}`
+      : `Please analyze this local image: ${pathForPrompt}`,
   }
   return templates[options.tool] ?? templates.generic
 }
@@ -414,10 +431,21 @@ async function copyText(text) {
   }
 
   if (platform() === 'win32') {
-    const child = spawn('powershell.exe', ['-NoProfile', '-Command', 'Set-Clipboard -Value ([Console]::In.ReadToEnd())'])
-    child.stdin.write(text)
-    child.stdin.end()
-    await waitForChild(child, 'Set-Clipboard')
+    const clipboardTextPath = join(tmpdir(), `agentshot-clipboard-${process.pid}-${Date.now()}.txt`)
+    writeFileSync(clipboardTextPath, text, 'utf8')
+    const script = `
+$text = Get-Content -LiteralPath '${escapePowerShellSingleQuoted(clipboardTextPath)}' -Raw -Encoding UTF8
+Set-Clipboard -Value $text
+`
+    try {
+      await powershell(['-Command', script], 'ignore')
+    } finally {
+      try {
+        unlinkSync(clipboardTextPath)
+      } catch {
+        // Temporary clipboard file cleanup is best-effort.
+      }
+    }
     return
   }
 
@@ -508,9 +536,10 @@ async function watchClipboard(options) {
   }
 }
 
-function daemonArgs(options) {
+function daemonArgs(options, settings = {}) {
+  const includeAsk = settings.includeAsk ?? true
   const args = ['daemon', 'run', '--tool', options.tool, '--interval', String(options.intervalMs)]
-  if (options.ask) args.push('--ask', options.ask)
+  if (includeAsk && options.ask) args.push('--ask', options.ask)
   if (options.paste) args.push('--paste')
   if (options.wsl) args.push('--wsl')
   return args
@@ -537,6 +566,19 @@ function readDaemonConfig() {
   }
 }
 
+function applyDaemonConfig(options) {
+  const config = readDaemonConfig()
+  if (!config) return options
+  return {
+    ...options,
+    ask: options.ask || config.ask || '',
+    tool: options.tool === 'generic' && config.tool ? config.tool : options.tool,
+    paste: options.paste || Boolean(config.paste),
+    wsl: options.wsl || Boolean(config.wsl),
+    intervalMs: options.intervalMs === 800 && config.intervalMs ? config.intervalMs : options.intervalMs,
+  }
+}
+
 function shellQuoteWindows(value) {
   return `"${String(value).replaceAll('"', '\\"')}"`
 }
@@ -551,22 +593,69 @@ function installWindowsDaemon(options) {
   const node = process.execPath
   const script = currentScriptPath()
   const log = daemonLogPath()
-  const taskCommand = [
-    shellQuoteWindows(node),
-    shellQuoteWindows(script),
-    ...daemonArgs(options).map(shellQuoteWindows),
-    '>>',
-    shellQuoteWindows(log),
-    '2>>&1',
-  ].join(' ')
-  const taskRun = `powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command ${shellQuoteWindows(taskCommand)}`
+  const runnerPath = join(ensureConfigDir(), 'daemon-run.cmd')
+  const runner = [
+    '@echo off',
+    'setlocal',
+    `set "AGENTSHOT_HOME=${ensureConfigDir()}"`,
+    `set "AGENTSHOT_DIR=${ensureShotDir()}"`,
+    ':loop',
+    `echo [%date% %time%] AgentShot daemon starting.>> "${log}"`,
+    `${shellQuoteWindows(node)} ${shellQuoteWindows(script)} ${daemonArgs(options, { includeAsk: false }).map(shellQuoteWindows).join(' ')} >> "${log}" 2>&1`,
+    `echo [%date% %time%] AgentShot daemon exited with code %ERRORLEVEL%. Restarting in 2s.>> "${log}"`,
+    'timeout /t 2 /nobreak >nul',
+    'goto loop',
+    '',
+  ].join('\r\n')
+  writeFileSync(runnerPath, `${runner}\r\n`)
+  const taskRun = shellQuoteWindows(runnerPath)
   const result = spawnSync('schtasks.exe', ['/Create', '/TN', taskName, '/SC', 'ONLOGON', '/TR', taskRun, '/F'], {
     shell: false,
     stdio: 'pipe',
     encoding: 'utf8',
   })
-  if (result.status !== 0) throw new Error(result.stderr.trim() || result.stdout.trim() || 'Failed to create scheduled task.')
+  if (result.status !== 0) {
+    return installWindowsStartupFallback(runnerPath, result.stderr.trim() || result.stdout.trim())
+  }
+  startWindowsRunner(runnerPath)
   return `Installed Windows scheduled task: ${taskName}`
+}
+
+function startWindowsRunner(runnerPath) {
+  const child = spawn('cmd.exe', ['/d', '/c', runnerPath], {
+    shell: false,
+    stdio: 'ignore',
+    windowsHide: true,
+    detached: true,
+  })
+  child.unref()
+}
+
+function installWindowsStartupFallback(runnerPath, reason) {
+  const startupDir = join(
+    process.env.APPDATA || join(homedir(), 'AppData', 'Roaming'),
+    'Microsoft',
+    'Windows',
+    'Start Menu',
+    'Programs',
+    'Startup',
+  )
+  mkdirSync(startupDir, { recursive: true })
+  const startupScript = join(startupDir, 'AgentShot.cmd')
+  writeFileSync(
+    startupScript,
+    [
+      '@echo off',
+      `start "" /min ${shellQuoteWindows(runnerPath)}`,
+      '',
+    ].join('\r\n'),
+  )
+  startWindowsRunner(runnerPath)
+  return `Installed Windows Startup fallback: ${startupScript}${reason ? ` (scheduled task unavailable: ${reason})` : ''}`
+}
+
+function toPowerShellLiteral(value) {
+  return `'${escapePowerShellSingleQuoted(String(value))}'`
 }
 
 function installMacOSDaemon(options) {
@@ -746,7 +835,7 @@ export async function main(argv = process.argv.slice(2)) {
     if (options.daemonAction && options.daemonAction !== 'run') {
       throw new Error(`Unknown daemon action: ${options.daemonAction}`)
     }
-    await watchClipboard(options)
+    await watchClipboard(options.daemonAction === 'run' ? applyDaemonConfig(options) : options)
     return
   }
   if (command === 'watch') {
@@ -762,7 +851,7 @@ export async function main(argv = process.argv.slice(2)) {
     else if (command === 'clipboard') file = await saveClipboardScreenshot()
     else if (command === 'last') {
       const latest = latestShotPath()
-      if (!latest) throw new Error(`No saved screenshots found in ${shotDir()}`)
+      if (!latest) throw new Error(`No saved screenshots found in ${ensureShotDir()}`)
       file = latest
     } else {
       throw new Error(`Unknown command: ${command}`)
