@@ -5,12 +5,12 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@jcmeteor/agentshot"><img alt="npm" src="https://img.shields.io/npm/v/@jcmeteor/agentshot?style=for-the-badge&logo=npm&color=CB3837" /></a>
+  <a href="https://www.npmjs.com/package/jcagentshot"><img alt="npm" src="https://img.shields.io/npm/v/jcagentshot?style=for-the-badge&logo=npm&color=CB3837" /></a>
   <img alt="Node.js" src="https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" />
   <img alt="Local First" src="https://img.shields.io/badge/Local--first-No%20upload-1F6FEB?style=for-the-badge" />
   <br />
   <a href="https://github.com/JunchenMeteor/AgentShot/issues"><img alt="Issues" src="https://img.shields.io/badge/Links-Issues-1F6FEB" /></a>
-  <a href="https://www.npmjs.com/package/@jcmeteor/agentshot"><img alt="npm downloads" src="https://img.shields.io/npm/dm/@jcmeteor/agentshot?label=npm%20downloads" /></a>
+  <a href="https://www.npmjs.com/package/jcagentshot"><img alt="npm downloads" src="https://img.shields.io/npm/dm/jcagentshot?label=npm%20downloads" /></a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/License-MIT-blue" /></a>
   <br />
   <a href="README.md"><img alt="Docs English" src="https://img.shields.io/badge/Docs-English-black" /></a>
@@ -45,21 +45,21 @@ AgentShot is for developers who use AI coding agents from the terminal and need 
 Install globally:
 
 ```bash
-npm install -g @jcmeteor/agentshot
+npm install -g jcagentshot
 ```
 
 Use one screenshot from the clipboard:
 
 ```bash
 # macOS: Cmd+Shift+Ctrl+4, select a region, then:
-agentshot clipboard --ask "Analyze this UI bug"
+jcshot clipboard --ask "Analyze this UI bug"
 ```
 
 Keep a watcher running for repeated screenshots:
 
 ```bash
-agentshot daemon install --ask "Analyze this screenshot"
-agentshot daemon status
+jcshot daemon install --ask "Analyze this screenshot"
+jcshot daemon status
 ```
 
 After that, take a clipboard screenshot and paste the generated prompt into Claude Code, Codex, Aider, Gemini CLI, OpenCode, or another terminal agent.
@@ -70,24 +70,26 @@ Example generated prompt:
 Analyze this screenshot: /Users/you/.agentshot/shots/shot-20260608-224138.png
 ```
 
+Naming note: the product is AgentShot, the npm package is `jcagentshot`, the CLI command is `jcshot`, and local data remains under `~/.agentshot`.
+
 ## Install
 
 npm is the primary distribution channel:
 
 ```bash
-npm install -g @jcmeteor/agentshot
+npm install -g jcagentshot
 ```
 
 The global install does not start a background service automatically. Enable background clipboard watching explicitly:
 
 ```bash
-agentshot daemon install --ask "Analyze this screenshot"
+jcshot daemon install --ask "Analyze this screenshot"
 ```
 
 Run without a global install:
 
 ```bash
-npx @jcmeteor/agentshot
+npx jcagentshot
 ```
 
 Install from GitHub for preview builds:
@@ -108,7 +110,7 @@ npm link
 Skip postinstall guidance:
 
 ```bash
-AGENTSHOT_SKIP_POSTINSTALL=1 npm install -g @jcmeteor/agentshot
+AGENTSHOT_SKIP_POSTINSTALL=1 npm install -g jcagentshot
 ```
 
 If global install fails with a permission error, prefer a user-writable npm prefix:
@@ -116,7 +118,7 @@ If global install fails with a permission error, prefer a user-writable npm pref
 ```bash
 npm config set prefix ~/.npm-global
 export PATH="$HOME/.npm-global/bin:$PATH"
-npm install -g @jcmeteor/agentshot
+npm install -g jcagentshot
 ```
 
 Windows user-writable prefix:
@@ -152,7 +154,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 As a temporary fallback on macOS/Linux, you can use `sudo`, but a user-writable npm prefix is preferred:
 
 ```bash
-sudo npm install -g @jcmeteor/agentshot
+sudo npm install -g jcagentshot
 ```
 
 ## Why AgentShot
@@ -184,57 +186,57 @@ macOS clipboard-first:
 
 ```bash
 # Cmd+Shift+Ctrl+4, select an area, then:
-agentshot clipboard --ask "Analyze this UI bug"
+jcshot clipboard --ask "Analyze this UI bug"
 ```
 
 Windows clipboard-first:
 
 ```powershell
 # Win+Shift+S, select an area, then:
-agentshot clipboard --ask "Analyze this UI bug"
+jcshot clipboard --ask "Analyze this UI bug"
 ```
 
 Run a watcher in the current terminal:
 
 ```bash
-agentshot watch --ask "Analyze this screenshot"
+jcshot watch --ask "Analyze this screenshot"
 ```
 
 Install the watcher as a startup daemon:
 
 ```bash
-agentshot daemon install --ask "Analyze this screenshot"
-agentshot daemon status
+jcshot daemon install --ask "Analyze this screenshot"
+jcshot daemon status
 ```
 
 Use Codex from WSL:
 
 ```powershell
-agentshot clipboard --tool codex --wsl --ask "Find the visual bug"
+jcshot clipboard --tool codex --wsl --ask "Find the visual bug"
 ```
 
 Reuse the latest screenshot:
 
 ```bash
-agentshot last --tool aider --ask "Review this screenshot"
+jcshot last --tool aider --ask "Review this screenshot"
 ```
 
 Use an existing image file:
 
 ```bash
-agentshot --path ./error.png --tool opencode --ask "Explain this error"
+jcshot --path ./error.png --tool opencode --ask "Explain this error"
 ```
 
 Copy and try to paste into the active terminal:
 
 ```bash
-agentshot clipboard --tool claude --ask "Inspect this page" --paste
+jcshot clipboard --tool claude --ask "Inspect this page" --paste
 ```
 
 Interactive fallback:
 
 ```bash
-agentshot --ask "What is wrong with this layout?"
+jcshot --ask "What is wrong with this layout?"
 ```
 
 On macOS this runs `screencapture -i`. On Windows it opens screen clipping if the clipboard does not already contain an image.
@@ -243,17 +245,17 @@ On macOS this runs `screencapture -i`. On Windows it opens screen clipping if th
 
 | Command | What it does |
 | --- | --- |
-| `agentshot [capture]` | Capture/save a screenshot and copy a prompt. |
-| `agentshot clipboard` | Save the current clipboard image and copy a prompt. |
-| `agentshot watch` | Watch for new clipboard screenshots in the current terminal. |
-| `agentshot daemon` | Run the long-running clipboard watcher. |
-| `agentshot daemon install` | Install the startup clipboard watcher. |
-| `agentshot daemon status` | Show daemon install state, config, and log path. |
-| `agentshot daemon uninstall` | Remove the startup watcher. |
-| `agentshot sessions` | List detected AI CLI processes. |
-| `agentshot last` | Reuse the latest saved screenshot. |
-| `agentshot dir` | Print the screenshot directory. |
-| `agentshot --help` | Show help. |
+| `jcshot [capture]` | Capture/save a screenshot and copy a prompt. |
+| `jcshot clipboard` | Save the current clipboard image and copy a prompt. |
+| `jcshot watch` | Watch for new clipboard screenshots in the current terminal. |
+| `jcshot daemon` | Run the long-running clipboard watcher. |
+| `jcshot daemon install` | Install the startup clipboard watcher. |
+| `jcshot daemon status` | Show daemon install state, config, and log path. |
+| `jcshot daemon uninstall` | Remove the startup watcher. |
+| `jcshot sessions` | List detected AI CLI processes. |
+| `jcshot last` | Reuse the latest saved screenshot. |
+| `jcshot dir` | Print the screenshot directory. |
+| `jcshot --help` | Show help. |
 
 Command modes at a glance:
 
@@ -294,7 +296,7 @@ Windows: %USERPROFILE%\.agentshot\shots
 If the home directory is not writable, AgentShot falls back to `Pictures/agent-shots`, then the system temp directory. Set `AGENTSHOT_DIR` to force a specific location:
 
 ```bash
-AGENTSHOT_DIR=/path/to/shots agentshot
+AGENTSHOT_DIR=/path/to/shots jcshot
 ```
 
 Native terminal paste notes:
@@ -319,9 +321,9 @@ This avoids unsafe automatic paste into the wrong window while still removing ma
 AgentShot's daemon is a resident clipboard watcher. It does not upload screenshots and does not inject text into terminal windows by default.
 
 ```bash
-agentshot daemon install --ask "Analyze this screenshot"
-agentshot daemon status
-agentshot daemon uninstall
+jcshot daemon install --ask "Analyze this screenshot"
+jcshot daemon status
+jcshot daemon uninstall
 ```
 
 Startup integration:
@@ -365,7 +367,7 @@ This is a high-level positioning table, not an exhaustive benchmark.
 
 ## Session Detection
 
-`agentshot sessions` lists likely terminal AI CLI processes. This is read-only and exists to support future explicit injection workflows without making direct injection the default behavior.
+`jcshot sessions` lists likely terminal AI CLI processes. This is read-only and exists to support future explicit injection workflows without making direct injection the default behavior.
 
 ## Quality
 

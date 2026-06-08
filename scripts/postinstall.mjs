@@ -4,5 +4,5 @@ const skip = process.env.AGENTSHOT_SKIP_POSTINSTALL === '1'
 
 if (!skip) {
   console.log('AgentShot installed.')
-  console.log('Run `agentshot daemon install --tool codex --ask "Analyze this screenshot"` to enable background clipboard watching.')
+  console.log('Run `jcshot daemon install --tool codex --ask "Analyze this screenshot"` to enable background clipboard watching.')
 }

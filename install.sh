@@ -72,8 +72,8 @@ ensure_path() {
 }
 
 install_agentshot() {
-  step "Installing @jcmeteor/agentshot from npm"
-  npm install -g @jcmeteor/agentshot
+  step "Installing jcagentshot from npm"
+  npm install -g jcagentshot
 }
 
 ensure_node
@@ -83,5 +83,5 @@ install_agentshot
 
 step "AgentShot is ready"
 printf 'Run this to enable background clipboard watching:\n'
-printf 'agentshot daemon install --tool codex --ask "Analyze this screenshot"\n'
-agentshot --help
+printf 'jcshot daemon install --tool codex --ask "Analyze this screenshot"\n'
+jcshot --help
