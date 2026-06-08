@@ -593,22 +593,21 @@ function installWindowsDaemon(options) {
   const node = process.execPath
   const script = currentScriptPath()
   const log = daemonLogPath()
-  const runnerPath = join(ensureConfigDir(), 'daemon-run.cmd')
+  const runnerPath = join(ensureConfigDir(), 'daemon-launch.ps1')
   const runner = [
-    '@echo off',
-    'setlocal',
-    `set "AGENTSHOT_HOME=${ensureConfigDir()}"`,
-    `set "AGENTSHOT_DIR=${ensureShotDir()}"`,
-    ':loop',
-    `echo [%date% %time%] AgentShot daemon starting.>> "${log}"`,
-    `${shellQuoteWindows(node)} ${shellQuoteWindows(script)} ${daemonArgs(options, { includeAsk: false }).map(shellQuoteWindows).join(' ')} >> "${log}" 2>&1`,
-    `echo [%date% %time%] AgentShot daemon exited with code %ERRORLEVEL%. Restarting in 2s.>> "${log}"`,
-    'timeout /t 2 /nobreak >nul',
-    'goto loop',
+    '$ErrorActionPreference = "Continue"',
+    `$env:AGENTSHOT_HOME = ${toPowerShellLiteral(ensureConfigDir())}`,
+    `$env:AGENTSHOT_DIR = ${toPowerShellLiteral(ensureShotDir())}`,
+    `$env:AGENTSHOT_DAEMON_LOG = ${toPowerShellLiteral(log)}`,
+    `$node = ${toPowerShellLiteral(node)}`,
+    `$script = ${toPowerShellLiteral(script)}`,
+    `$arguments = @(${daemonArgs(options, { includeAsk: false }).map(toPowerShellLiteral).join(', ')})`,
+    'Start-Process -FilePath $node -ArgumentList @($script) + $arguments -WindowStyle Hidden',
     '',
   ].join('\r\n')
   writeFileSync(runnerPath, `${runner}\r\n`)
-  const taskRun = shellQuoteWindows(runnerPath)
+  const powershellPath = windowsPowerShellPath()
+  const taskRun = `${shellQuoteWindows(powershellPath)} -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File ${shellQuoteWindows(runnerPath)}`
   const result = spawnSync('schtasks.exe', ['/Create', '/TN', taskName, '/SC', 'ONLOGON', '/TR', taskRun, '/F'], {
     shell: false,
     stdio: 'pipe',
@@ -617,16 +616,22 @@ function installWindowsDaemon(options) {
   if (result.status !== 0) {
     return installWindowsStartupFallback(runnerPath, result.stderr.trim() || result.stdout.trim())
   }
-  startWindowsRunner(runnerPath)
+  startWindowsRunner(node, script, options, log)
   return `Installed Windows scheduled task: ${taskName}`
 }
 
-function startWindowsRunner(runnerPath) {
-  const child = spawn('cmd.exe', ['/d', '/c', runnerPath], {
+function startWindowsRunner(node, script, options, log) {
+  const child = spawn(node, [script, ...daemonArgs(options, { includeAsk: false })], {
     shell: false,
-    stdio: 'ignore',
+    stdio: ['ignore', 'ignore', 'ignore'],
     windowsHide: true,
     detached: true,
+    env: {
+      ...process.env,
+      AGENTSHOT_HOME: ensureConfigDir(),
+      AGENTSHOT_DIR: ensureShotDir(),
+      AGENTSHOT_DAEMON_LOG: log,
+    },
   })
   child.unref()
 }
@@ -646,12 +651,23 @@ function installWindowsStartupFallback(runnerPath, reason) {
     startupScript,
     [
       '@echo off',
-      `start "" /min ${shellQuoteWindows(runnerPath)}`,
+      `${shellQuoteWindows(windowsPowerShellPath())} -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File ${shellQuoteWindows(runnerPath)}`,
       '',
     ].join('\r\n'),
   )
-  startWindowsRunner(runnerPath)
+  const config = readDaemonConfig() || {}
+  startWindowsRunner(process.execPath, currentScriptPath(), {
+    tool: config.tool || 'generic',
+    ask: config.ask || '',
+    paste: Boolean(config.paste),
+    wsl: Boolean(config.wsl),
+    intervalMs: config.intervalMs || 800,
+  }, daemonLogPath())
   return `Installed Windows Startup fallback: ${startupScript}${reason ? ` (scheduled task unavailable: ${reason})` : ''}`
+}
+
+function windowsPowerShellPath() {
+  return join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe')
 }
 
 function toPowerShellLiteral(value) {
