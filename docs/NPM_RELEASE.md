@@ -49,16 +49,21 @@ Check that the tarball includes:
 
 AgentShot keeps npm publishing and GitHub Releases synchronized through Git tags.
 
-Required repository secret:
+AgentShot uses npm Trusted Publishing instead of a long-lived `NPM_TOKEN` secret. GitHub Actions receives a short-lived OIDC credential from npm during the release job.
+
+Required npm package setting:
 
 ```text
-NPM_TOKEN
+npm package -> Settings -> Trusted publishing -> GitHub Actions
 ```
 
-Create the token in npm with publish permission for `@jcmeteor/agentshot`, then add it in GitHub:
+Configure the trusted publisher as:
 
 ```text
-Repository Settings -> Secrets and variables -> Actions -> New repository secret
+Organization or user: JunchenMeteor
+Repository: AgentShot
+Workflow filename: release.yml
+Environment name: leave empty
 ```
 
 Release flow:
@@ -72,9 +77,10 @@ git push origin v$(node -p "require('./package.json').version")
 When the `vX.Y.Z` tag is pushed, GitHub Actions will:
 
 1. Check that the tag version matches `package.json`.
-2. Run `npm run validate`.
-3. Publish `@jcmeteor/agentshot@X.Y.Z` to npm with provenance.
-4. Create or update the matching GitHub Release with generated notes.
+2. Install an npm CLI version that supports Trusted Publishing.
+3. Run `npm run validate`.
+4. Publish `@jcmeteor/agentshot@X.Y.Z` to npm through Trusted Publishing.
+5. Create or update the matching GitHub Release with generated notes.
 
 If the tag and `package.json` version do not match, the release workflow fails before publishing.
 If npm publish succeeds but a later step fails, do not rerun blindly for the same version. Check npm first, then repair the GitHub Release manually or publish a new patch version.
