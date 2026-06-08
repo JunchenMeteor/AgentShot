@@ -1,0 +1,54 @@
+{
+  "name": "@junchenmeteor/agentshot",
+  "version": "0.1.0",
+  "description": "Local-first screenshot bridge for Claude Code, Codex CLI, Aider, Gemini CLI, OpenCode, and terminal AI agents.",
+  "type": "module",
+  "homepage": "https://github.com/JunchenMeteor/AgentShot#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JunchenMeteor/AgentShot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JunchenMeteor/AgentShot/issues"
+  },
+  "bin": {
+    "agentshot": "./bin/agentshot.js"
+  },
+  "files": [
+    "AGENTS.md",
+    "bin",
+    "scripts",
+    "docs",
+    "README.md",
+    "README.zh-CN.md",
+    "install.ps1",
+    "install.sh",
+    "LICENSE"
+  ],
+  "scripts": {
+    "check": "node --check bin/agentshot.js",
+    "postinstall": "node scripts/postinstall.mjs",
+    "test": "node --test",
+    "smoke": "node bin/agentshot.js --help",
+    "validate": "node scripts/validate.mjs"
+  },
+  "keywords": [
+    "claude-code",
+    "codex-cli",
+    "aider",
+    "gemini-cli",
+    "opencode",
+    "ai-agent",
+    "screenshot",
+    "terminal",
+    "cli",
+    "windows",
+    "macos",
+    "local-first"
+  ],
+  "author": "JunchenMeteor",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}
