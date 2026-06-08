@@ -1,10 +1,21 @@
 # AgentShot
 
-[![npm version](https://img.shields.io/npm/v/@jcmeteor/agentshot)](https://www.npmjs.com/package/@jcmeteor/agentshot)
-[![npm downloads](https://img.shields.io/npm/dm/@jcmeteor/agentshot)](https://www.npmjs.com/package/@jcmeteor/agentshot)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+<p align="center">
+  <strong>Local-first screenshot bridge for terminal AI agents</strong>
+</p>
 
-[English](README.md) | [简体中文](README.zh-CN.md)
+<p align="center">
+  <a href="https://www.npmjs.com/package/@jcmeteor/agentshot"><img alt="npm" src="https://img.shields.io/npm/v/@jcmeteor/agentshot?style=for-the-badge&logo=npm&color=CB3837" /></a>
+  <img alt="Node.js" src="https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" />
+  <img alt="Local First" src="https://img.shields.io/badge/Local--first-No%20upload-1F6FEB?style=for-the-badge" />
+  <br />
+  <a href="https://github.com/JunchenMeteor/AgentShot/issues"><img alt="Issues" src="https://img.shields.io/badge/Links-Issues-1F6FEB" /></a>
+  <a href="https://www.npmjs.com/package/@jcmeteor/agentshot"><img alt="npm downloads" src="https://img.shields.io/npm/dm/@jcmeteor/agentshot?label=npm%20downloads" /></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/License-MIT-blue" /></a>
+  <br />
+  <a href="README.md"><img alt="Docs English" src="https://img.shields.io/badge/Docs-English-black" /></a>
+  <a href="README.zh-CN.md"><img alt="Docs 中文" src="https://img.shields.io/badge/Docs-%E4%B8%AD%E6%96%87-red" /></a>
+</p>
 
 Local-first screenshot bridge for Claude Code, Codex CLI, Aider, Gemini CLI, OpenCode, and terminal AI agents.
 
@@ -41,13 +52,13 @@ Use one screenshot from the clipboard:
 
 ```bash
 # macOS: Cmd+Shift+Ctrl+4, select a region, then:
-agentshot clipboard --ask "Analyze this UI bug" --tool codex
+agentshot clipboard --ask "Analyze this UI bug"
 ```
 
 Keep a watcher running for repeated screenshots:
 
 ```bash
-agentshot daemon install --tool codex --ask "Analyze this screenshot"
+agentshot daemon install --ask "Analyze this screenshot"
 agentshot daemon status
 ```
 
@@ -70,7 +81,7 @@ npm install -g @jcmeteor/agentshot
 The global install does not start a background service automatically. Enable background clipboard watching explicitly:
 
 ```bash
-agentshot daemon install --tool codex --ask "Analyze this screenshot"
+agentshot daemon install --ask "Analyze this screenshot"
 ```
 
 Run without a global install:
@@ -173,26 +184,26 @@ macOS clipboard-first:
 
 ```bash
 # Cmd+Shift+Ctrl+4, select an area, then:
-agentshot clipboard --ask "Analyze this UI bug" --tool codex
+agentshot clipboard --ask "Analyze this UI bug"
 ```
 
 Windows clipboard-first:
 
 ```powershell
 # Win+Shift+S, select an area, then:
-agentshot clipboard --ask "Analyze this UI bug" --tool claude
+agentshot clipboard --ask "Analyze this UI bug"
 ```
 
 Run a watcher in the current terminal:
 
 ```bash
-agentshot watch --ask "Analyze this screenshot" --tool codex
+agentshot watch --ask "Analyze this screenshot"
 ```
 
 Install the watcher as a startup daemon:
 
 ```bash
-agentshot daemon install --ask "Analyze this screenshot" --tool codex
+agentshot daemon install --ask "Analyze this screenshot"
 agentshot daemon status
 ```
 
@@ -223,7 +234,7 @@ agentshot clipboard --tool claude --ask "Inspect this page" --paste
 Interactive fallback:
 
 ```bash
-agentshot --ask "What is wrong with this layout?" --tool codex
+agentshot --ask "What is wrong with this layout?"
 ```
 
 On macOS this runs `screencapture -i`. On Windows it opens screen clipping if the clipboard does not already contain an image.
@@ -257,6 +268,8 @@ Command modes at a glance:
 ## Supported AI Tools
 
 AgentShot uses prompt templates instead of provider APIs. That keeps it compatible with any CLI agent that can access local files.
+
+`--tool` is optional. If you omit it, AgentShot uses the generic prompt template. Add `--tool codex`, `--tool claude`, or another template only when you want wording tailored to a specific agent.
 
 First-class templates:
 
@@ -306,7 +319,7 @@ This avoids unsafe automatic paste into the wrong window while still removing ma
 AgentShot's daemon is a resident clipboard watcher. It does not upload screenshots and does not inject text into terminal windows by default.
 
 ```bash
-agentshot daemon install --tool codex --ask "Analyze this screenshot"
+agentshot daemon install --ask "Analyze this screenshot"
 agentshot daemon status
 agentshot daemon uninstall
 ```
