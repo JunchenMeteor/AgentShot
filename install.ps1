@@ -74,12 +74,12 @@ function Ensure-UserPath {
 }
 
 function Install-AgentShot {
-  Write-Step "Installing @jcmeteor/agentshot from npm"
+  Write-Step "Installing jcagentshot from npm"
   if ($SkipDaemon) {
     $env:AGENTSHOT_SKIP_POSTINSTALL = "1"
   }
 
-  & npm install -g "@jcmeteor/agentshot"
+  & npm install -g "jcagentshot"
   if ($LASTEXITCODE -ne 0) {
     throw "npm install failed."
   }
@@ -92,5 +92,5 @@ Install-AgentShot
 
 Write-Step "AgentShot is ready"
 Write-Host 'Run this to enable background clipboard watching:'
-Write-Host 'agentshot daemon install --tool codex --ask "Analyze this screenshot"'
-& agentshot --help
+Write-Host 'jcshot daemon install --tool codex --ask "Analyze this screenshot"'
+& jcshot --help

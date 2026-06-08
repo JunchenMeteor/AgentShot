@@ -17,17 +17,17 @@ export function usage() {
 Local-first screenshot bridge for terminal AI agents.
 
 Usage:
-  agentshot [capture] [--ask "question"] [--tool codex] [--paste] [--wsl]
-  agentshot clipboard [--ask "question"] [--tool claude]
-  agentshot watch [--ask "question"] [--tool codex] [--paste] [--interval 800]
-  agentshot daemon [--ask "question"] [--tool codex] [--interval 800]
-  agentshot daemon install [--ask "question"] [--tool codex]
-  agentshot daemon status
-  agentshot daemon uninstall
-  agentshot sessions
-  agentshot last [--ask "question"] [--tool aider]
-  agentshot dir
-  agentshot --help
+  jcshot [capture] [--ask "question"] [--tool codex] [--paste] [--wsl]
+  jcshot clipboard [--ask "question"] [--tool claude]
+  jcshot watch [--ask "question"] [--tool codex] [--paste] [--interval 800]
+  jcshot daemon [--ask "question"] [--tool codex] [--interval 800]
+  jcshot daemon install [--ask "question"] [--tool codex]
+  jcshot daemon status
+  jcshot daemon uninstall
+  jcshot sessions
+  jcshot last [--ask "question"] [--tool aider]
+  jcshot dir
+  jcshot --help
 
 Commands:
   capture      Capture a screenshot. Default command.
@@ -256,7 +256,7 @@ async function captureWindows(file) {
         // Keep polling while the user is selecting a region.
       }
     }
-    throw new Error('Timed out waiting for a clipboard image. Try Win+Shift+S, then run `agentshot clipboard`.')
+    throw new Error('Timed out waiting for a clipboard image. Try Win+Shift+S, then run `jcshot clipboard`.')
   }
 }
 
@@ -520,7 +520,7 @@ async function watchClipboard(options) {
     try {
       state = await getClipboardState()
     } catch (error) {
-      console.error(`agentshot: clipboard state error: ${error instanceof Error ? error.message : String(error)}`)
+      console.error(`jcshot: clipboard state error: ${error instanceof Error ? error.message : String(error)}`)
       continue
     }
 
@@ -533,7 +533,7 @@ async function watchClipboard(options) {
       lastSavedChangeCount = state.changeCount
       await complete(file, options)
     } catch (error) {
-      console.error(`agentshot: clipboard image save failed: ${error instanceof Error ? error.message : String(error)}`)
+      console.error(`jcshot: clipboard image save failed: ${error instanceof Error ? error.message : String(error)}`)
     }
   }
 }
@@ -890,7 +890,7 @@ function isCliEntrypoint() {
 
 if (isCliEntrypoint()) {
   main().catch((error) => {
-    console.error(`agentshot: ${error instanceof Error ? error.message : String(error)}`)
+    console.error(`jcshot: ${error instanceof Error ? error.message : String(error)}`)
     process.exitCode = 1
   })
 }

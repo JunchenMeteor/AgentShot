@@ -3,7 +3,7 @@
 AgentShot's primary distribution channel is npm:
 
 ```bash
-npm install -g @jcmeteor/agentshot
+npm install -g jcagentshot
 ```
 
 GitHub installs are reserved for preview builds or source testing.
@@ -14,9 +14,9 @@ You need:
 
 - An npm account: https://www.npmjs.com/signup
 - 2FA configured if npm requires it for publishing.
-- Access to the package scope.
+- Ownership of the `jcagentshot` package name.
 
-For the package name `@jcmeteor/agentshot`, the npm user or organization must own the `jcmeteor` scope. If the scope does not exist, npm creates it for your user on first publish if the username matches, or for an organization if created in npm first.
+For the unscoped package name `jcagentshot`, the first successful publish claims that package name for the publishing npm account.
 
 ## Login
 
@@ -79,7 +79,7 @@ When the `vX.Y.Z` tag is pushed, GitHub Actions will:
 1. Check that the tag version matches `package.json`.
 2. Install an npm CLI version that supports Trusted Publishing.
 3. Run `npm run validate`.
-4. Publish `@jcmeteor/agentshot@X.Y.Z` to npm through Trusted Publishing.
+4. Publish `jcagentshot@X.Y.Z` to npm through Trusted Publishing.
 5. Create or update the matching GitHub Release with generated notes.
 
 If the tag and `package.json` version do not match, the release workflow fails before publishing.
@@ -91,24 +91,24 @@ Because `main` is protected, prefer opening a version bump PR first, merging it,
 
 ```bash
 npm login
-npm publish --access public
+npm publish
 ```
 
-Scoped packages need `--access public` for public release.
+Unscoped packages publish publicly by default.
 
 After publishing, verify:
 
 ```bash
-npm view @jcmeteor/agentshot version
-npm view @jcmeteor/agentshot dist.tarball
+npm view jcagentshot version
+npm view jcagentshot dist.tarball
 ```
 
 Then test install on a clean machine or throwaway directory:
 
 ```bash
-npm install -g @jcmeteor/agentshot
-agentshot --help
-agentshot daemon status
+npm install -g jcagentshot
+jcshot --help
+jcshot daemon status
 ```
 
 ## Permission Issues During Global Install
@@ -142,22 +142,22 @@ macOS/Linux:
 ```bash
 npm config set prefix ~/.npm-global
 export PATH="$HOME/.npm-global/bin:$PATH"
-npm install -g @jcmeteor/agentshot
+npm install -g jcagentshot
 ```
 
 Windows PowerShell:
 
 ```powershell
 npm config set prefix "$env:USERPROFILE\.npm-global"
-npm install -g @jcmeteor/agentshot
+npm install -g jcagentshot
 ```
 
-Then add `%USERPROFILE%\.npm-global` to the user PATH if `agentshot` is not found.
+Then add `%USERPROFILE%\.npm-global` to the user PATH if `jcshot` is not found.
 
 Temporary macOS/Linux fallback:
 
 ```bash
-sudo npm install -g @jcmeteor/agentshot
+sudo npm install -g jcagentshot
 ```
 
 A user-writable prefix is preferred because it avoids mixing npm global tools with administrator-owned files.

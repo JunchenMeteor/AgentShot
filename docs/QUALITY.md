@@ -36,7 +36,7 @@ macOS:
 
 ```bash
 # Cmd+Shift+Ctrl+4, select an area, then:
-agentshot clipboard --ask "Analyze this screenshot" --tool codex
+jcshot clipboard --ask "Analyze this screenshot" --tool codex
 ```
 
 Expected:
@@ -48,7 +48,7 @@ Windows:
 
 ```powershell
 # Win+Shift+S, select an area, then:
-agentshot clipboard --ask "Analyze this screenshot" --tool claude
+jcshot clipboard --ask "Analyze this screenshot" --tool claude
 ```
 
 Expected:
@@ -59,7 +59,7 @@ Expected:
 Windows screen clipping fallback:
 
 ```powershell
-agentshot --ask "Analyze this screenshot" --tool codex
+jcshot --ask "Analyze this screenshot" --tool codex
 ```
 
 Expected:
@@ -70,7 +70,7 @@ Expected:
 Watcher:
 
 ```bash
-agentshot daemon --ask "Analyze this screenshot" --tool codex
+jcshot daemon --ask "Analyze this screenshot" --tool codex
 ```
 
 Expected:

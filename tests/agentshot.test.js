@@ -18,7 +18,7 @@ test('VERSION matches package metadata', () => {
 
 test('usage includes core commands and supported tools', () => {
   const text = usage()
-  assert.match(text, /agentshot \[capture\]/)
+  assert.match(text, /jcshot \[capture\]/)
   assert.match(text, /clipboard/)
   assert.match(text, /watch/)
   assert.match(text, /daemon/)

@@ -13,7 +13,7 @@ AgentShot is a local-first screenshot bridge for terminal AI agents. It reduces 
 ## Core Loop
 
 ```text
-user copies screenshot to clipboard -> agentshot saves image -> AI prompt is rendered -> prompt is copied or pasted -> AI reads local image path
+user copies screenshot to clipboard -> jcshot saves image -> AI prompt is rendered -> prompt is copied or pasted -> AI reads local image path
 ```
 
 ## Product Direction
@@ -30,16 +30,16 @@ Phase 1: robust clipboard bridge
 
 Phase 2: resident daemon by default
 
-- `agentshot daemon run` is the long-running clipboard watcher.
-- `agentshot daemon install` registers a startup service.
-- `agentshot daemon status` reports installed state, config, and log path.
-- `agentshot daemon uninstall` removes the startup service.
+- `jcshot daemon run` is the long-running clipboard watcher.
+- `jcshot daemon install` registers a startup service.
+- `jcshot daemon status` reports installed state, config, and log path.
+- `jcshot daemon uninstall` removes the startup service.
 - npm `postinstall` should only print setup guidance. It must not start background processes or register startup services.
 - Postinstall guidance must be skippable with `AGENTSHOT_SKIP_POSTINSTALL=1` and must not fail package installation.
 
 Phase 3: session detection for future evolution
 
-- `agentshot sessions` lists detected terminal AI CLI processes.
+- `jcshot sessions` lists detected terminal AI CLI processes.
 - Detection is read-only and should not inject text.
 - Supported process families should include Claude Code, Codex CLI, Aider, Gemini CLI, and OpenCode.
 - Session data can later support explicit user-selected injection, but injection is not a default behavior.
@@ -49,11 +49,11 @@ Phase 3: session detection for future evolution
 - macOS clipboard image save from PNG/TIFF pasteboard data.
 - macOS interactive region capture with `screencapture` as fallback.
 - Windows clipboard-image save and optional screen clipping launch.
-- Clipboard watcher with `agentshot watch`.
-- Long-running daemon command with `agentshot daemon`.
-- Startup daemon management with `agentshot daemon install/status/uninstall`.
+- Clipboard watcher with `jcshot watch`.
+- Long-running daemon command with `jcshot daemon`.
+- Startup daemon management with `jcshot daemon install/status/uninstall`.
 - npm postinstall guidance without automatic daemon registration.
-- Read-only session detection with `agentshot sessions`.
+- Read-only session detection with `jcshot sessions`.
 - Local file storage with timestamped names.
 - Prompt templates for multiple AI tools.
 - Clipboard copy by default.
@@ -101,7 +101,7 @@ Windows:
 
 Daemon:
 
-- The installed daemon runs `agentshot daemon run`.
+- The installed daemon runs `jcshot daemon run`.
 - Logs are written under `~/.agentshot/daemon.log`.
 - Runtime config is written to `~/.agentshot/daemon.json`.
 - macOS uses a LaunchAgent under `~/Library/LaunchAgents`.
@@ -134,16 +134,16 @@ README and topics should include:
 
 ## Acceptance Criteria
 
-- `agentshot --help` prints usage.
-- `agentshot dir` prints the local screenshot directory.
-- `agentshot last --ask "..." --tool codex` works after at least one saved screenshot exists.
-- `agentshot clipboard` saves a clipboard PNG on macOS and Windows.
-- `agentshot watch` detects new clipboard images and generates prompts.
-- `agentshot daemon` provides a memorable long-running watcher entrypoint.
-- `agentshot daemon install` installs a startup watcher on Windows/macOS.
-- `agentshot daemon status` reports config and log location.
-- `agentshot daemon uninstall` removes startup integration.
-- `agentshot sessions` prints detected AI CLI process candidates or an empty message.
+- `jcshot --help` prints usage.
+- `jcshot dir` prints the local screenshot directory.
+- `jcshot last --ask "..." --tool codex` works after at least one saved screenshot exists.
+- `jcshot clipboard` saves a clipboard PNG on macOS and Windows.
+- `jcshot watch` detects new clipboard images and generates prompts.
+- `jcshot daemon` provides a memorable long-running watcher entrypoint.
+- `jcshot daemon install` installs a startup watcher on Windows/macOS.
+- `jcshot daemon status` reports config and log location.
+- `jcshot daemon uninstall` removes startup integration.
+- `jcshot sessions` prints detected AI CLI process candidates or an empty message.
 - macOS capture saves a PNG file under `~/.agentshot/shots`.
 - Windows clipboard capture saves a PNG file under `%USERPROFILE%\.agentshot\shots`.
 - Prompt is copied to clipboard after a successful capture.

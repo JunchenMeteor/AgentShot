@@ -19,7 +19,7 @@ AgentShot should not upload screenshots, call AI APIs, or inject text into termi
 Primary distribution is npm:
 
 ```bash
-npm install -g @jcmeteor/agentshot
+npm install -g jcagentshot
 ```
 
 The package uses `postinstall` only to print daemon setup guidance. It must not start background processes or register startup services during package installation.
@@ -98,17 +98,17 @@ node bin/agentshot.js sessions
 
 Supported commands:
 
-- `agentshot [capture]`
-- `agentshot clipboard`
-- `agentshot watch`
-- `agentshot daemon`
-- `agentshot daemon run`
-- `agentshot daemon install`
-- `agentshot daemon status`
-- `agentshot daemon uninstall`
-- `agentshot sessions`
-- `agentshot last`
-- `agentshot dir`
+- `jcshot [capture]`
+- `jcshot clipboard`
+- `jcshot watch`
+- `jcshot daemon`
+- `jcshot daemon run`
+- `jcshot daemon install`
+- `jcshot daemon status`
+- `jcshot daemon uninstall`
+- `jcshot sessions`
+- `jcshot last`
+- `jcshot dir`
 
 Supported tool templates:
 
@@ -129,7 +129,7 @@ The daemon is a clipboard watcher.
 - Config is written to `~/.agentshot/daemon.json`.
 - `AGENTSHOT_SKIP_POSTINSTALL=1` skips postinstall guidance during npm install.
 
-Daemon registration must be explicit through `agentshot daemon install`. Do not start background processes during npm installation.
+Daemon registration must be explicit through `jcshot daemon install`. Do not start background processes during npm installation.
 
 ## Storage
 
@@ -152,7 +152,7 @@ Do not add cloud upload, telemetry, remote image hosting, or third-party account
 - Keep OS integration conservative and failure-tolerant.
 - Avoid direct terminal injection as a default behavior.
 - Do not add a GUI, tray app, or global hotkey without updating product docs first.
-- Preserve existing CLI compatibility where practical. For example, `agentshot daemon` should remain a foreground watcher alias.
+- Preserve existing CLI compatibility where practical. For example, `jcshot daemon` should remain a foreground watcher alias.
 - Use structured APIs for OS integration where practical. Avoid brittle string parsing when an OS command can return JSON.
 - Do not upload screenshots or send image data to AI providers.
 
@@ -182,7 +182,7 @@ Update docs when behavior changes:
 Primary package name:
 
 ```text
-@jcmeteor/agentshot
+jcagentshot
 ```
 
 First public publish:
