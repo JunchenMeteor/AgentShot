@@ -98,14 +98,18 @@ Windows:
 - `Set-Clipboard` copies prompt text.
 - `System.Windows.Forms.SendKeys` is used for optional paste.
 - `schtasks` registers the daemon at user logon.
+- Windows watch mode uses one hidden clipboard helper process instead of spawning PowerShell for every poll.
 
 Daemon:
 
 - The installed daemon runs `jcshot daemon run`.
+- `jcshot daemon install` is explicit and prints the clipboard-image-only scope before registration.
 - Logs are written under `~/.agentshot/daemon.log`.
 - Runtime config is written to `~/.agentshot/daemon.json`.
 - macOS uses a LaunchAgent under `~/Library/LaunchAgents`.
 - Windows uses a user logon scheduled task named `AgentShot`.
+- `jcshot daemon doctor` reports installed state, paths, and safety-scope checks.
+- AgentShot does not perform network requests, read text clipboard content, or inject text by default.
 
 ## AI Tool Adapter Strategy
 
