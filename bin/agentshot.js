@@ -4,6 +4,7 @@ import { spawn, spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, unlinkSync, writeFileSync } from 'node:fs'
 import { homedir, platform, tmpdir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
+import { createInterface } from 'node:readline'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const packageJsonPath = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'package.json')
@@ -19,10 +20,11 @@ Local-first screenshot bridge for terminal AI agents.
 Usage:
   jcshot [capture] [--ask "question"] [--tool codex] [--paste] [--wsl]
   jcshot clipboard [--ask "question"] [--tool claude]
-  jcshot watch [--ask "question"] [--tool codex] [--paste] [--interval 800]
-  jcshot daemon [--ask "question"] [--tool codex] [--interval 800]
+  jcshot watch [--ask "question"] [--tool codex] [--paste] [--interval 1500]
+  jcshot daemon [--ask "question"] [--tool codex] [--interval 1500]
   jcshot daemon install [--ask "question"] [--tool codex]
   jcshot daemon status
+  jcshot daemon doctor
   jcshot daemon uninstall
   jcshot sessions
   jcshot last [--ask "question"] [--tool aider]
@@ -45,7 +47,7 @@ Options:
   --paste      Best-effort paste into the active window after copying.
   --wsl        On Windows, render /mnt/c/... path for WSL terminals.
   --path PATH  Reuse a specific image path instead of capturing.
-  --interval   Watch polling interval in milliseconds. Default: 800.
+  --interval   Watch polling interval in milliseconds. Default: 1500.
 `
 }
 
@@ -58,7 +60,7 @@ export function parseArgs(argv) {
     paste: false,
     wsl: false,
     imagePath: '',
-    intervalMs: 800,
+    intervalMs: 1500,
     daemonAction: '',
     quiet: false,
   }
@@ -105,7 +107,7 @@ export function parseArgs(argv) {
 
   options.tool = options.tool.toLowerCase()
   if (!SUPPORTED_TOOLS.has(options.tool)) options.tool = 'generic'
-  if (!Number.isFinite(options.intervalMs) || options.intervalMs < 250) options.intervalMs = 800
+  if (!Number.isFinite(options.intervalMs) || options.intervalMs < 500) options.intervalMs = 1500
   return { command, options }
 }
 
@@ -203,7 +205,11 @@ export function latestShotPath() {
 
 function run(command, args, options = {}) {
   return new Promise((resolvePromise, reject) => {
-    const child = spawn(command, args, { stdio: options.stdio ?? 'inherit', shell: false })
+    const child = spawn(command, args, {
+      stdio: options.stdio ?? 'inherit',
+      shell: false,
+      windowsHide: platform() === 'win32',
+    })
     child.on('error', reject)
     child.on('exit', (code) => {
       if (code === 0) resolvePromise()
@@ -368,7 +374,11 @@ function delay(ms) {
 
 function captureOutput(command, args) {
   return new Promise((resolvePromise, reject) => {
-    const child = spawn(command, args, { shell: false, stdio: ['ignore', 'pipe', 'pipe'] })
+    const child = spawn(command, args, {
+      shell: false,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: platform() === 'win32',
+    })
     let stdout = ''
     let stderr = ''
     child.stdout.on('data', chunk => {
@@ -501,6 +511,11 @@ async function complete(file, options) {
 }
 
 async function watchClipboard(options) {
+  if (platform() === 'win32') {
+    await watchWindowsClipboard(options)
+    return
+  }
+
   console.error('AgentShot watch is running. Copy a screenshot to the clipboard to generate a prompt.')
   console.error(`Tool: ${options.tool}. Paste: ${options.paste ? 'enabled' : 'disabled'}. Interval: ${options.intervalMs}ms.`)
   console.error('Press Ctrl+C to stop.')
@@ -536,6 +551,81 @@ async function watchClipboard(options) {
       console.error(`jcshot: clipboard image save failed: ${error instanceof Error ? error.message : String(error)}`)
     }
   }
+}
+
+async function watchWindowsClipboard(options) {
+  console.error('AgentShot watch is running. Copy a screenshot to the clipboard to generate a prompt.')
+  console.error(`Tool: ${options.tool}. Paste: ${options.paste ? 'enabled' : 'disabled'}. Interval: ${options.intervalMs}ms.`)
+  console.error('Windows mode: using one hidden clipboard watcher process.')
+  console.error('Press Ctrl+C to stop.')
+
+  const watcher = startWindowsClipboardWatcher(options.intervalMs)
+  let lastSavedChangeCount = null
+
+  watcher.stderr.on('data', chunk => {
+    const text = chunk.toString().trim()
+    if (text) console.error(`jcshot: clipboard watcher: ${text}`)
+  })
+
+  const lines = createInterface({ input: watcher.stdout })
+  process.once('SIGINT', () => {
+    watcher.kill()
+    process.exit(130)
+  })
+
+  for await (const line of lines) {
+    if (!line.trim()) continue
+    let state
+    try {
+      state = JSON.parse(line)
+    } catch {
+      console.error(`jcshot: clipboard watcher returned invalid output: ${line}`)
+      continue
+    }
+
+    if (!state.hasImage || state.changeCount === lastSavedChangeCount) continue
+
+    try {
+      const file = await saveClipboardScreenshot()
+      lastSavedChangeCount = state.changeCount
+      await complete(file, options)
+    } catch (error) {
+      console.error(`jcshot: clipboard image save failed: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
+
+  const code = watcher.exitCode
+  if (code && code !== 0) throw new Error(`Windows clipboard watcher exited with code ${code}`)
+}
+
+function startWindowsClipboardWatcher(intervalMs) {
+  const script = `
+$ErrorActionPreference = "Continue"
+Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class ClipboardNative {
+  [DllImport("user32.dll")]
+  public static extern uint GetClipboardSequenceNumber();
+}
+'@
+Add-Type -AssemblyName System.Windows.Forms
+$last = [ClipboardNative]::GetClipboardSequenceNumber()
+while ($true) {
+  Start-Sleep -Milliseconds ${Math.max(500, Number(intervalMs) || 1500)}
+  $sequence = [ClipboardNative]::GetClipboardSequenceNumber()
+  if ($sequence -eq $last) { continue }
+  $last = $sequence
+  $hasImage = [System.Windows.Forms.Clipboard]::ContainsImage()
+  @{ changeCount = [int64]$sequence; hasImage = [bool]$hasImage } | ConvertTo-Json -Compress
+  [Console]::Out.Flush()
+}
+`
+  return spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', script], {
+    shell: false,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    windowsHide: true,
+  })
 }
 
 function daemonArgs(options, settings = {}) {
@@ -577,7 +667,7 @@ function applyDaemonConfig(options) {
     tool: options.tool === 'generic' && config.tool ? config.tool : options.tool,
     paste: options.paste || Boolean(config.paste),
     wsl: options.wsl || Boolean(config.wsl),
-    intervalMs: options.intervalMs === 800 && config.intervalMs ? config.intervalMs : options.intervalMs,
+    intervalMs: options.intervalMs === 1500 && config.intervalMs ? config.intervalMs : options.intervalMs,
   }
 }
 
@@ -604,7 +694,9 @@ function installWindowsDaemon(options) {
     `$node = ${toPowerShellLiteral(node)}`,
     `$script = ${toPowerShellLiteral(script)}`,
     `$arguments = @(${daemonArgs(options, { includeAsk: false }).map(toPowerShellLiteral).join(', ')})`,
-    'Start-Process -FilePath $node -ArgumentList @($script) + $arguments -WindowStyle Hidden',
+    '$outLog = Join-Path $env:AGENTSHOT_HOME "daemon.out.log"',
+    '$errLog = Join-Path $env:AGENTSHOT_HOME "daemon.err.log"',
+    'Start-Process -FilePath $node -ArgumentList @($script) + $arguments -WindowStyle Hidden -RedirectStandardOutput $outLog -RedirectStandardError $errLog',
     '',
   ].join('\r\n')
   writeFileSync(runnerPath, `${runner}\r\n`)
@@ -639,16 +731,9 @@ function startWindowsRunner(node, script, options, log) {
 }
 
 function installWindowsStartupFallback(runnerPath, reason) {
-  const startupDir = join(
-    process.env.APPDATA || join(homedir(), 'AppData', 'Roaming'),
-    'Microsoft',
-    'Windows',
-    'Start Menu',
-    'Programs',
-    'Startup',
-  )
+  const startupDir = windowsStartupFallbackDir()
   mkdirSync(startupDir, { recursive: true })
-  const startupScript = join(startupDir, 'AgentShot.cmd')
+  const startupScript = windowsStartupFallbackPath()
   writeFileSync(
     startupScript,
     [
@@ -663,13 +748,24 @@ function installWindowsStartupFallback(runnerPath, reason) {
     ask: config.ask || '',
     paste: Boolean(config.paste),
     wsl: Boolean(config.wsl),
-    intervalMs: config.intervalMs || 800,
+    intervalMs: config.intervalMs || 1500,
   }, daemonLogPath())
   return `Installed Windows Startup fallback: ${startupScript}${reason ? ` (scheduled task unavailable: ${reason})` : ''}`
 }
 
 function windowsPowerShellPath() {
   return join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe')
+}
+
+function windowsStartupFallbackDir() {
+  return join(
+    process.env.APPDATA || join(homedir(), 'AppData', 'Roaming'),
+    'Microsoft',
+    'Windows',
+    'Start Menu',
+    'Programs',
+    'Startup',
+  )
 }
 
 function toPowerShellLiteral(value) {
@@ -721,6 +817,10 @@ function escapeXml(value) {
 }
 
 async function installDaemon(options) {
+  if (!options.quiet) {
+    console.log('AgentShot daemon will watch clipboard image changes only.')
+    console.log('It does not read text clipboard content, upload files, or inject text into terminal windows.')
+  }
   const currentPlatform = platform()
   let message
   if (currentPlatform === 'win32') message = installWindowsDaemon(options)
@@ -736,6 +836,7 @@ function uninstallDaemon(options = {}) {
   const currentPlatform = platform()
   if (currentPlatform === 'win32') {
     spawnSync('schtasks.exe', ['/Delete', '/TN', 'AgentShot', '/F'], { stdio: 'ignore' })
+    rmSync(windowsStartupFallbackPath(), { force: true })
   } else if (currentPlatform === 'darwin') {
     const plistPath = join(homedir(), 'Library', 'LaunchAgents', 'com.junchenmeteor.agentshot.plist')
     spawnSync('launchctl', ['unload', plistPath], { stdio: 'ignore' })
@@ -744,6 +845,10 @@ function uninstallDaemon(options = {}) {
     throw new Error('Daemon uninstall is currently supported on Windows and macOS.')
   }
   if (!options.quiet) console.log('AgentShot daemon uninstalled.')
+}
+
+function windowsStartupFallbackPath() {
+  return join(windowsStartupFallbackDir(), 'AgentShot.cmd')
 }
 
 function daemonStatus() {
@@ -763,6 +868,62 @@ function daemonStatus() {
     details = 'Daemon status is currently supported on Windows and macOS.'
   }
   console.log(JSON.stringify({ installed, config, log: daemonLogPath(), details }, null, 2))
+}
+
+function daemonDoctor() {
+  const currentPlatform = platform()
+  const report = {
+    platform: currentPlatform,
+    configDir: ensureConfigDir(),
+    shotDir: ensureShotDir(),
+    configPath: daemonConfigPath(),
+    logPath: daemonLogPath(),
+    config: readDaemonConfig(),
+    checks: [],
+  }
+
+  report.checks.push({
+    name: 'network',
+    status: 'ok',
+    detail: 'AgentShot does not perform network requests.',
+  })
+  report.checks.push({
+    name: 'clipboard_scope',
+    status: 'ok',
+    detail: 'Daemon watches clipboard image availability and sequence changes only.',
+  })
+
+  if (currentPlatform === 'win32') {
+    const scheduled = spawnSync('schtasks.exe', ['/Query', '/TN', 'AgentShot'], { stdio: 'pipe', encoding: 'utf8' })
+    const fallbackPath = windowsStartupFallbackPath()
+    report.checks.push({
+      name: 'windows_scheduled_task',
+      status: scheduled.status === 0 ? 'ok' : 'missing',
+      detail: scheduled.status === 0 ? 'Scheduled task AgentShot is installed.' : 'Scheduled task AgentShot is not installed.',
+    })
+    report.checks.push({
+      name: 'windows_startup_fallback',
+      status: existsSync(fallbackPath) ? 'present' : 'ok',
+      detail: existsSync(fallbackPath)
+        ? `Startup fallback exists: ${fallbackPath}`
+        : 'No Startup folder fallback script found.',
+    })
+  } else if (currentPlatform === 'darwin') {
+    const plistPath = join(homedir(), 'Library', 'LaunchAgents', 'com.junchenmeteor.agentshot.plist')
+    report.checks.push({
+      name: 'macos_launch_agent',
+      status: existsSync(plistPath) ? 'ok' : 'missing',
+      detail: plistPath,
+    })
+  } else {
+    report.checks.push({
+      name: 'daemon_support',
+      status: 'unsupported',
+      detail: 'Daemon install is currently supported on Windows and macOS.',
+    })
+  }
+
+  console.log(JSON.stringify(report, null, 2))
 }
 
 function parseProcessLines(output, currentPlatform) {
@@ -844,6 +1005,10 @@ export async function main(argv = process.argv.slice(2)) {
     }
     if (options.daemonAction === 'status') {
       daemonStatus()
+      return
+    }
+    if (options.daemonAction === 'doctor') {
+      daemonDoctor()
       return
     }
     if (options.daemonAction === 'uninstall') {

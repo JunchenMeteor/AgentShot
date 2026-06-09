@@ -51,6 +51,12 @@ test('parseArgs supports daemon lifecycle actions', () => {
   assert.equal(parsed.options.ask, 'Analyze this')
 })
 
+test('parseArgs supports daemon doctor action', () => {
+  const parsed = parseArgs(['daemon', 'doctor'])
+  assert.equal(parsed.command, 'daemon')
+  assert.equal(parsed.options.daemonAction, 'doctor')
+})
+
 test('parseArgs supports quiet postinstall mode', () => {
   const parsed = parseArgs(['daemon', 'install', '--quiet'])
   assert.equal(parsed.options.daemonAction, 'install')
@@ -59,7 +65,7 @@ test('parseArgs supports quiet postinstall mode', () => {
 
 test('parseArgs clamps invalid watch interval', () => {
   const parsed = parseArgs(['watch', '--interval', '100'])
-  assert.equal(parsed.options.intervalMs, 800)
+  assert.equal(parsed.options.intervalMs, 1500)
 })
 
 test('parseArgs supports command, ask, tool, paste, wsl, and path', () => {

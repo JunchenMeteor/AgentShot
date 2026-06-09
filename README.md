@@ -323,13 +323,16 @@ AgentShot's daemon is a resident clipboard watcher. It does not upload screensho
 ```bash
 jcshot daemon install --ask "Analyze this screenshot"
 jcshot daemon status
+jcshot daemon doctor
 jcshot daemon uninstall
 ```
+
+`daemon install` is explicit. npm install does not register or start background services. Before installation, AgentShot prints the daemon scope: it watches clipboard image changes only, does not read text clipboard content, does not upload files, and does not inject text into terminal windows.
 
 Startup integration:
 
 - macOS: LaunchAgent at `~/Library/LaunchAgents/com.junchenmeteor.agentshot.plist`.
-- Windows: user logon scheduled task named `AgentShot`.
+- Windows: user logon scheduled task named `AgentShot`. The watcher uses one hidden clipboard helper process instead of repeatedly spawning PowerShell for each poll.
 
 Logs and config:
 
@@ -337,6 +340,8 @@ Logs and config:
 ~/.agentshot/daemon.log
 ~/.agentshot/daemon.json
 ```
+
+`jcshot daemon doctor` prints the installed task/agent state, config path, log path, screenshot directory, and safety-scope checks.
 
 ## Platform Coverage
 
