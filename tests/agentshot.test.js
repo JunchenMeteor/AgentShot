@@ -121,6 +121,26 @@ test('renderPrompt uses tool-specific wording and ask text', () => {
   assert.match(prompt, /shot\.png/)
 })
 
+test('renderPrompt puts Claude image path before ask text', () => {
+  const prompt = renderPrompt('/tmp/shot.png', {
+    ask: 'Review the layout',
+    tool: 'claude',
+    wsl: false,
+  })
+
+  assert.equal(prompt, '/tmp/shot.png\n\nReview the layout')
+})
+
+test('renderPrompt puts Claude image path before default instruction', () => {
+  const prompt = renderPrompt('/tmp/shot.png', {
+    ask: '',
+    tool: 'claude',
+    wsl: false,
+  })
+
+  assert.equal(prompt, '/tmp/shot.png\n\nPlease inspect this image.')
+})
+
 test('renderPrompt supports generic fallback shape', () => {
   const prompt = renderPrompt('/tmp/shot.png', {
     ask: '',
