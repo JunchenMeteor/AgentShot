@@ -127,8 +127,9 @@ test('renderPrompt puts Claude image path before ask text', () => {
     tool: 'claude',
     wsl: false,
   })
+  const renderedPath = renderPathForPrompt('/tmp/shot.png', { wsl: false })
 
-  assert.equal(prompt, '/tmp/shot.png\n\nReview the layout')
+  assert.equal(prompt, `${renderedPath}\n\nReview the layout`)
 })
 
 test('renderPrompt puts Claude image path before default instruction', () => {
@@ -137,8 +138,9 @@ test('renderPrompt puts Claude image path before default instruction', () => {
     tool: 'claude',
     wsl: false,
   })
+  const renderedPath = renderPathForPrompt('/tmp/shot.png', { wsl: false })
 
-  assert.equal(prompt, '/tmp/shot.png\n\nPlease inspect this image.')
+  assert.equal(prompt, `${renderedPath}\n\nPlease inspect this image.`)
 })
 
 test('renderPrompt supports generic fallback shape', () => {
