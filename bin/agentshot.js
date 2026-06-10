@@ -412,8 +412,8 @@ export function renderPrompt(file, options) {
   const ask = options.ask?.trim()
   const templates = {
     claude: ask
-      ? `${ask} Please inspect this local image: ${pathForPrompt}`
-      : `Please inspect this local image: ${pathForPrompt}`,
+      ? `${pathForPrompt}\n\n${ask}`
+      : `${pathForPrompt}\n\nPlease inspect this image.`,
     codex: ask
       ? `${ask} Analyze this local screenshot: ${pathForPrompt}`
       : `Analyze this local screenshot: ${pathForPrompt}`,
